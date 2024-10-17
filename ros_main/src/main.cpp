@@ -18,7 +18,7 @@ static RobotAct Robot;
 ros::Timer Task_Timer;
 /*---------------全局变量区---------------*/
 static int TimerAct = TimerAct_READY;// 任务状态
-static int nState = STATE_READY;     // 初始状态
+static int nState   = STATE_READY;   // 初始状态
 static int nOpenCount = 0;           // 开门延迟
 static string strDetect;             // 物品识别
 /*---------------数组/容器区---------------*/

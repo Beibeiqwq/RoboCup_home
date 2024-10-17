@@ -91,7 +91,7 @@ public:
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
-	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
+	//void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	string strDetect;		   // 物品识别
 	/*--------------语音类---------------*/
 	std::string strListen;

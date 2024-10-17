@@ -619,3 +619,13 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
     }
     return strRes;
 }
+
+/// @brief Yolov5开启状态
+/// @param inStr “start”为开启 开启后默认扫描一次
+/// @return
+void RobotAct::YoloStart()
+{
+    std_msgs::String Str;
+    Str.data = "start";
+    yolo_pub.publish(Str);
+}
