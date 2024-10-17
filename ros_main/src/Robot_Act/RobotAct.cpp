@@ -165,7 +165,7 @@ bool RobotAct::Main()
         }
         if (bPassDone == true)
         {
-            printf("[RobotAct] %d - Pass %s done!\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Pass %s done! \n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
             PassSwitch(false);
             nCurActIndex++;
         }
