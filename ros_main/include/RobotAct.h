@@ -154,7 +154,6 @@ private:
 
 	bool bOpenpose = false;	   // 动作识别
 
-	string strDetect;		   // 物品识别
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
