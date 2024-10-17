@@ -26,7 +26,10 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wpb_home_tutorials)/maps/map.yaml"/>
 
   <!--- Run AMCL -->
-  <include file="$(find wpb_home_tutorials)/nav_lidar/amcl_omni.launch" />
+  <node pkg="jie_ware" type="lidar_loc" name="lidar_loc" >
+    <param name="base_frame" value="base_footprint" />
+    <param name="laser_frame" value="laser" />
+</node>
 
   <!--- Run move base -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">

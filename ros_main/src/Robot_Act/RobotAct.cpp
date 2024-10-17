@@ -374,7 +374,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             box_object.bottom = msg.bottom[i];           // y_max
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
-            std::string strDetect = msg.name[i];
+            strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
             if (Peoplename.length() > 0)
             {
@@ -595,4 +595,27 @@ void RobotAct::Speak(const std::string &answer_txt)
     {
         ROS_ERROR("[Speak]failed to send str2voice service");
     }
+}
+
+/// @brief 寻找关键词 YOLO版
+/// @param inSentence 传入的句子 -- YoloV5 Node中
+/// @param arWord     关键词    -- Init_Keywords中
+/// @return 得到的关键词
+string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord)
+{
+    string strRes = "";
+    int nNum = arWord.size();
+    for (const auto &bbox : YOLO_BBOX)
+    {
+        for (int j = 0; j < nNum; j++)
+        {
+            int tmpIndex = bbox.name.find(arWord[j]);
+            if (tmpIndex >= 0)
+            {
+                strRes = arWord[j];
+                break;
+            }
+        }
+    }
+    return strRes;
 }

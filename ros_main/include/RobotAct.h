@@ -92,11 +92,13 @@ public:
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
+	string strDetect;		   // 物品识别
 	/*--------------语音类---------------*/
 	std::string strListen;
 	void Speak(const std::string &answer_txt);
 	string GetToSpeak();
 	string FindWord(string, vector<string> &arWord);
+	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord);
 	/*--------------动作类---------------*/
 	bool bGrabDone;
 	bool bPassDone;
@@ -151,8 +153,6 @@ private:
 	//bool bArrive = false;	   // 到达标志位
 
 	bool bOpenpose = false;	   // 动作识别
-
-	string strDetect;		   // 物品识别
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器

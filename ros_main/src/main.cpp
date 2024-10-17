@@ -6,8 +6,10 @@
 #define STATE_WAIT_CMD            2
 #define STATE_ACTION              3
 #define STATE_GOTO_EXIT           4
-#define STATE_FIND_PERSON         5
-#define STATE_FIND_OBJ            6
+
+#define TimerAct_READY            5
+#define TimerAct_FIND_PERSON      6
+#define TimerAct_FIND_OBJ         7
 /*---------------初始化区---------------*/
 
 
@@ -15,18 +17,18 @@ static RobotAct Robot;
 /*--------------ROS定义区---------------*/
 ros::Timer Task_Timer;
 /*---------------全局变量区---------------*/
-static int nAct   = ACT_REMOVE;    // 任务状态
-static int nState = STATE_READY;   // 初始状态
-static int nOpenCount = 0;         // 开门延迟
-static string strDetect;           // 物品识别
+static int TimerAct = TimerAct_READY;// 任务状态
+static int nState = STATE_READY;     // 初始状态
+static int nOpenCount = 0;           // 开门延迟
+static string strDetect;             // 物品识别
 /*---------------数组/容器区---------------*/
 std::vector<BBox2D> YOLO_BBOX;                    // 识别结果
 std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 std::vector<BBox2D> recv_BBOX;
-std::vector<string> arKWPlacement; // 地点
-std::vector<string> arKWObject;    // 物品
-std::vector<string> arKWPerson;    // 人名
-std::vector<string> arKWAction;    // 行为
+std::vector<string> arKWPlacement;   // 地点
+std::vector<string> arKWObject;      // 物品
+std::vector<string> arKWPerson;      // 人名
+std::vector<string> arKWAction;      // 行为
 
 /// @brief 关键词初始化
 void Init_keywords()
@@ -90,11 +92,63 @@ void EntranceCB(const std_msgs::String::ConstPtr &msg)
     }
 }
 
+/// @brief 时钟运行
+/// @param e 
+void MainCallback(const ros::TimerEvent &e)
+{
+    if (TimerAct == TimerAct_READY)
+    {
+        cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
+        Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
+        // nPlaceCount++;
+        TimerAct = TimerAct_FIND_PERSON;
+        sleep(1);
+    }
+
+    if (TimerAct == TimerAct_FIND_PERSON)
+    {
+        if (!Robot.bPeopleFound)
+        {
+            Robot.SetSpeed(0, 0, 0.1);
+        }
+        else
+        {
+            Robot._bFixView = true;
+            if (Robot._bFixView_ok == true)
+            {
+                Robot.ActionDetect();
+                Robot._bFixView_ok = false;
+            }
+            Robot.nPeopleCount++;
+            TimerAct = TimerAct_FIND_OBJ;
+        }
+    }
+
+    if (TimerAct == TimerAct_FIND_OBJ)
+    {
+        if (!Robot.bObjectFound)
+        {
+            Robot.SetSpeed(0, 0, 0.1);
+        }
+        else
+        {
+            Robot.GrabSwitch(true);
+            Robot.nLitterCount++;
+            TimerAct = TimerAct_READY;
+        }
+    }
+
+    if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
+        nState = STATE_GOTO_EXIT;
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "main");
+    ros::NodeHandle nh;
     Init_keywords();
     Robot.Init();
+    ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
     cout << "[Main]主节点启动!" << endl;
     nState = STATE_WAIT_ENTR;
     ros::Rate r(10);
@@ -125,51 +179,3 @@ int main(int argc, char** argv)
     }
     return 0; 
 }
-
-        void MainCallback(const ros::TimerEvent& e)
-        {
-            if(nAct == ACT_REMOVE )
-            {
-                cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
-                Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
-                //nPlaceCount++;
-                nAct = ACT_FIND_PERSON;
-                sleep(1);                
-            }
-
-            if(nAct == ACT_FIND_PERSON )
-            {
-                if (!Robot.bPeopleFound)
-                {
-                    Robot.SetSpeed(0, 0, 0.1);
-                }
-                else
-                {
-                    Robot._bFixView = true;
-                    if(Robot._bFixView_ok == true)
-                    {
-                        Robot.ActionDetect();
-                        Robot._bFixView_ok = false;
-                    }
-                    Robot.nPeopleCount++;
-                    nAct = ACT_FIND_OBJ;
-                }
-            }
-
-            if(nAct == ACT_FIND_OBJ )
-            {
-                if(!Robot.bObjectFound)
-                {
-                    Robot.SetSpeed(0, 0, 0.1);
-                }
-                else
-                {
-                    Robot.GrabSwitch(true);
-                    Robot.nLitterCount++;
-                    nAct = ACT_REMOVE;
-                }
-            }
-
-            if((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone== true)
-                nState = STATE_GOTO_EXIT;
-        }
