@@ -94,18 +94,26 @@ public:
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	/*--------------语音类---------------*/
 	std::string strListen;
-	void Speak(const std::string &inStr);
+	void Speak(const std::string &answer_txt);
 	string GetToSpeak();
 	string FindWord(string, vector<string> &arWord);
 	/*--------------动作类---------------*/
 	bool bGrabDone;
 	bool bPassDone;
+	bool _bFixView = false;	   // 位姿修正
+	bool _bFixView_ok = false; // 修正状态
 	ros::Subscriber grab_result_sub;
 	ros::Subscriber pass_result_sub;
 	void GrabSwitch(bool);
 	void PassSwitch(bool);
  	void GrabResultCallback(const std_msgs::String::ConstPtr& res);
 	void PassResultCallback(const std_msgs::String::ConstPtr& res);
+	/*--------------任务类---------------*/
+	int nPeopleCount = 0;	   // 人物计数
+	int nLitterCount = 0;	   // 垃圾计数
+	int nPlaceCount  = 1;	   // 地点计数
+	bool bPeopleFound = false; // 人物标志位
+	bool bObjectFound = false; // 物品标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher speak_pub;
@@ -118,20 +126,14 @@ private:
 	ros::Subscriber sub_pose;
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
-	ros::Timer Task_Timer;
 	waterplus_map_tools::GetWaypointByName srvName;
 	/*---------------类内变量区---------------*/
-	int _check_flag;			   // 程序进入
-	//int nAct = ACT_CLEAR;	   // 任务状态
+	int    _check_flag;		   // 程序进入
+	string _coord_cmd;  	   //进门坐标
+	string _coord_exit; 	   //出门坐标
+	string _name_yaml;         //配置文件
 
-	string _coord_cmd;  
-	string _coord_exit; 
-	string _name_yaml;  
-
-	int nPeopleCount = 0;	   // 人物计数
-	int nLitterCount = 0;	   // 垃圾计数
-	int nPlaceCount = 1;	   // 地点计数
-	int nActionStage = 0;	   // 动作计数
+	int _nActionStage = 0;	   // 动作计数
 
 	int nYoloPeople = -1;	   // 人物编号
 
@@ -146,14 +148,7 @@ private:
 	float _PID_Forward = 0;	   // 修正前进PID系数
 	float _PID_Turn = 0;	   // 修正转向PID系数
 
-	bool bGotoExit = false;	   // 退出标志位
-	bool bArrive = false;	   // 到达标志位
-	bool bPeopleFound = false; // 人物标志位
-	bool bObjectFound = false; // 物品标志位
-	bool bGrab = false;		   // 抓取标志位
-
-	bool bFixView = false;	   // 位姿修正
-	bool bFixView_ok = false;  // 修正状态
+	//bool bArrive = false;	   // 到达标志位
 
 	bool bOpenpose = false;	   // 动作识别
 
