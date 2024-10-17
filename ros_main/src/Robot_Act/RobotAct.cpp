@@ -374,7 +374,10 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             box_object.bottom = msg.bottom[i];           // y_max
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 16c8a4dcfa710d8e84c631f1306443409e084ea0
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
             if (Peoplename.length() > 0)
@@ -596,4 +599,37 @@ void RobotAct::Speak(const std::string &answer_txt)
     {
         ROS_ERROR("[Speak]failed to send str2voice service");
     }
+}
+
+/// @brief 寻找关键词 YOLO版
+/// @param inSentence 传入的句子 -- YoloV5 Node中
+/// @param arWord     关键词    -- Init_Keywords中
+/// @return 得到的关键词
+string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord)
+{
+    string strRes = "";
+    int nNum = arWord.size();
+    for (const auto &bbox : YOLO_BBOX)
+    {
+        for (int j = 0; j < nNum; j++)
+        {
+            int tmpIndex = bbox.name.find(arWord[j]);
+            if (tmpIndex >= 0)
+            {
+                strRes = arWord[j];
+                break;
+            }
+        }
+    }
+    return strRes;
+}
+
+/// @brief Yolov5开启状态
+/// @param inStr “start”为开启 开启后默认扫描一次
+/// @return
+void RobotAct::YoloStart()
+{
+    std_msgs::String Str;
+    Str.data = "start";
+    yolo_pub.publish(Str);
 }
