@@ -1,0 +1,9 @@
+name: 'paramA'
+enter: 'cmdA'
+place1: 'living room'
+place2: 'kitchen'
+place3: 'bedroom'
+place4: 'dining room'
+exit: 'exitA'
+PID_Forward: 0.002
+PID_Turn: 0.003

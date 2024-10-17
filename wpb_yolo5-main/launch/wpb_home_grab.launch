@@ -1,0 +1,26 @@
+<launch>
+
+  <!--- Run wpb_home server -->
+  <include file="$(find wpb_home_bringup)/launch/normal.launch" />
+
+  <node pkg="wpb_home_behaviors" type="wpb_home_grab_action" name="wpb_home_grab_action">
+    <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
+  </node>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+    <rosparam command="load" file="$(find wpb_home_bringup)/config/wpb_home.yaml" />
+  </node>
+
+  <!--- Run Kinect -->
+  <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" />
+
+  <node pkg="wpb_yolo5" type="yolo5_node.py" name="yolo5_node"/>
+
+  <node pkg="wpb_yolo5" type="wpb_home_yolo_3d" name="wpb_home_yolo_3d" output="screen">
+    <param name="start" type="bool" value="false"/> 
+  </node>
+
+  <arg name="rvizconfig" default="$(find wpb_yolo5)/rviz/grab.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

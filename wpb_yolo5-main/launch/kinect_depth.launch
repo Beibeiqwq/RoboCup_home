@@ -1,0 +1,12 @@
+<launch>
+
+  <!--- Run Kinect -->
+  <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" />
+
+  <node pkg="wpb_yolo5" type="mouse_to_3d" name="mouse_to_3d" output="screen">
+    <param name="depth_topic" type="string" value="/kinect2/qhd/image_depth_rect"/> 
+    <param name="color_topic" type="string" value="/kinect2/qhd/image_color_rect"/> 
+    <param name="info_topic" type="string" value="/kinect2/qhd/camera_info"/> 
+  </node>
+
+</launch>

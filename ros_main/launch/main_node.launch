@@ -1,0 +1,5 @@
+<launch>
+	<node pkg="ros_main" type="main" name="main" output="screen">
+	    <rosparam command="load" file="$(find ros_main)/param/paramA_main.yaml" /> 
+	</node>
+</launch>

@@ -1,0 +1,21 @@
+#dataset path
+
+train: E:/dataset/merchandise/images
+val: E:/dataset/merchandise/images
+test: E:/dataset/merchandise/images
+
+#number of class
+nc: 2
+
+#class names
+names:
+    0: bread
+#    1: handwasher
+#    2: cleaner
+#    3: water
+#    4: chips
+#    5: cola
+#    6: sprite
+#    7: cookie
+#    8: orange juice
+#    9: ddd

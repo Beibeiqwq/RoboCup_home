@@ -1,0 +1,7 @@
+name: 'paramB'
+enter: 'cmdB'
+place1: 'dining room'
+place2: 'bedroom'
+place3: 'kitchen'
+place4: 'living room'
+exit: 'exitB'
