@@ -374,7 +374,8 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             box_object.bottom = msg.bottom[i];           // y_max
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
-            std::string strDetect = msg.name[i];
+
+            strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
             if (Peoplename.length() > 0)
             {
