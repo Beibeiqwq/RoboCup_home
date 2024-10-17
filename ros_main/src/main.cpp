@@ -1,11 +1,13 @@
 #include <ros/ros.h>
-#include <RobotAct.h>
+#include <RobotAct.h> 
 /*---------------状态机区---------------*/
 #define STATE_READY               0
 #define STATE_WAIT_ENTR           1
 #define STATE_WAIT_CMD            2
 #define STATE_ACTION              3
 #define STATE_GOTO_EXIT           4
+#define STATE_FIND_PERSON         5
+#define STATE_FIND_OBJ            6
 /*---------------初始化区---------------*/
 
 
@@ -105,13 +107,18 @@ int main(int argc, char** argv)
                 Robot.Enter();
             }
         }
+
         if (nState == STATE_ACTION)
         {
             Robot.Main();
         }
+
         if (nState == STATE_GOTO_EXIT)
         {
+            cout << "[Main]任务完成 前往退出地点并清空状态" << endl;
             Robot.Exit();
+            sleep(5);
+            Robot.Reset();
         }
         ros::spinOnce();
         r.sleep();
@@ -119,60 +126,50 @@ int main(int argc, char** argv)
     return 0; 
 }
 
-        // void MainCallback(const ros::TimerEvent& e)
-        // {
-        //     if(nAct == ACT_REMOVE && bGotoExit!= true)
-        //     {
-        //         cout << "[Main]正在前往地点：" << arKWPlacement[nPlaceCount] << endl;
-        //         Robot.Goto(arKWPlacement[nPlaceCount++]);
-        //         //nPlaceCount++;
-        //         nAct = ACT_FIND_PERSON;
-        //         sleep(1);                
-        //     }
+        void MainCallback(const ros::TimerEvent& e)
+        {
+            if(nAct == ACT_REMOVE )
+            {
+                cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
+                Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
+                //nPlaceCount++;
+                nAct = ACT_FIND_PERSON;
+                sleep(1);                
+            }
 
-        //     if(nAct == ACT_FIND_PERSON && bGotoExit != true)
-        //     {
-        //         if (!bPeopleFound)
-        //         {
-        //             Robot.Speed(0, 0, 0.1);
-        //         }
-        //         else
-        //         {
-        //             bFixView = true;
-        //             if(bFixView_ok == true)
-        //             {
-        //                 Robot.ActionDetect();
-        //                 bFixView_ok = false;
-        //             }
-        //             nPeopleCount++;
-        //             nAct = ACT_FIND_OBJ;
-        //         }
-        //     }
+            if(nAct == ACT_FIND_PERSON )
+            {
+                if (!Robot.bPeopleFound)
+                {
+                    Robot.SetSpeed(0, 0, 0.1);
+                }
+                else
+                {
+                    Robot._bFixView = true;
+                    if(Robot._bFixView_ok == true)
+                    {
+                        Robot.ActionDetect();
+                        Robot._bFixView_ok = false;
+                    }
+                    Robot.nPeopleCount++;
+                    nAct = ACT_FIND_OBJ;
+                }
+            }
 
-        //     if(nAct == ACT_FIND_OBJ && bGotoExit != true)
-        //     {
-        //         if(!bObjectFound)
-        //         {
-        //             Robot.Speed(0, 0, 0.1);
-        //         }
-        //         else
-        //         {
-        //             //Robot.Grab();//预留接口 wzy写
-        //             nLitterCount++;
-        //             nAct = ACT_REMOVE;
-        //         }
-        //     }
+            if(nAct == ACT_FIND_OBJ )
+            {
+                if(!Robot.bObjectFound)
+                {
+                    Robot.SetSpeed(0, 0, 0.1);
+                }
+                else
+                {
+                    Robot.GrabSwitch(true);
+                    Robot.nLitterCount++;
+                    nAct = ACT_REMOVE;
+                }
+            }
 
-        //     if((nPeopleCount == 3 && nLitterCount == 3) && bGrab!= true)
-        //         bGotoExit = true;
-
-        //     if(bGotoExit == true)
-        //     {
-        //         cout << "[Main]任务完成!前往退出地点...." << endl;
-        //         Robot.Goto(coord_exit);
-        //         sleep(5);
-        //         nState       = STATE_READY;
-        //         nAct         = ACT_REMOVE;
-        //         nActionStage = 0;
-        //     }
-        // }
+            if((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone== true)
+                nState = STATE_GOTO_EXIT;
+        }

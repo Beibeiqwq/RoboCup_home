@@ -6,7 +6,6 @@ static string strKeyWord = "";
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 
-
 RobotAct::RobotAct()
 {
     nCurActIndex = 0;
@@ -136,8 +135,8 @@ bool RobotAct::Main()
         if (nLastActCode != ACT_GOTO)
         {
             string StrGoto = arAct[nCurActIndex].strTarget;
-             printf("[RobotAct] %d - Find %s\n",nCurActIndex,arAct[nCurActIndex].strTarget.c_str());
-            Goto(StrGoto); 
+            printf("[RobotAct] %d - Find %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            Goto(StrGoto);
             nCurActIndex++;
         }
         break;
@@ -186,31 +185,31 @@ bool RobotAct::Main()
         }
         break;
 
-    // case ACT_LISTEN:
-    //     if (nLastActCode != ACT_LISTEN)
-    //     {
-    //         printf("[RobotAct] %d - Listen %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-    //         strListen = "";
-    //         strKeyWord = arAct[nCurActIndex].strTarget;
-    //         int nDur = arAct[nCurActIndex].nDuration;
-    //         if (nDur < 3)
-    //         {
-    //             nDur = 3;
-    //         }
-    //         // 开始语音识别
-    //         srvIAT.request.active = true;
-    //         srvIAT.request.duration = nDur;
-    //         clientIAT.call(srvIAT);
-    //     }
-    //     nKeyWord = strListen.find(strKeyWord);
-    //     if (nKeyWord >= 0)
-    //     {
-    //         // 识别完毕,关闭语音识别
-    //         srvIAT.request.active = false;
-    //         clientIAT.call(srvIAT);
-    //         nCurActIndex++;
-    //     }
-    //     break;
+        // case ACT_LISTEN:
+        //     if (nLastActCode != ACT_LISTEN)
+        //     {
+        //         printf("[RobotAct] %d - Listen %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+        //         strListen = "";
+        //         strKeyWord = arAct[nCurActIndex].strTarget;
+        //         int nDur = arAct[nCurActIndex].nDuration;
+        //         if (nDur < 3)
+        //         {
+        //             nDur = 3;
+        //         }
+        //         // 开始语音识别
+        //         srvIAT.request.active = true;
+        //         srvIAT.request.duration = nDur;
+        //         clientIAT.call(srvIAT);
+        //     }
+        //     nKeyWord = strListen.find(strKeyWord);
+        //     if (nKeyWord >= 0)
+        //     {
+        //         // 识别完毕,关闭语音识别
+        //         srvIAT.request.active = false;
+        //         clientIAT.call(srvIAT);
+        //         nCurActIndex++;
+        //     }
+        //     break;
 
     case ACT_MOVE:
         printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, arAct[nCurActIndex].fLinear_x, arAct[nCurActIndex].fLinear_y, arAct[nCurActIndex].fAngular_z);
@@ -390,7 +389,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
     }
 
     ///@brief 位姿修正
-    if (bFixView == true)
+    if (_bFixView == true)
     {
         cout << "[FixView]位姿修正开始...." << endl;
         _fVelForward = _fVelTurn = 0;
@@ -423,8 +422,8 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             }
         }
         SetSpeed(VelFixed(_fVelForward, _vel_max), 0, VelFixed(_fVelTurn, _vel_max));
-        bFixView_ok = true;
-        bFixView = false;
+        _bFixView_ok = true;
+        _bFixView = false;
     }
 }
 
@@ -553,4 +552,47 @@ float RobotAct::VelFixed(float inVel, float inMax)
     if (retVel < -inMax)
         retVel = -inMax;
     return retVel;
+}
+
+void RobotAct::ActionDetect()
+{
+    cout << "[ActionDetect]动作识别开始...." << endl;
+    if (_nActionStage == 3)
+    {
+        _nActionStage = 1;
+        bOpenpose = false;
+    }
+    if (_nActionStage == 0)
+        return;
+    if (_nActionStage == 1)
+    {
+        Speak("OK You can perform next action");
+        nPeopleCount++;
+    }
+    //string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
+    //printf("识别到动作 - %s \n", Action.c_str());
+    //Speak(Action);
+    // string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
+    printf("识别到动作 - %s \n", strDetect.c_str());
+    Speak(strDetect);
+    sleep(2);
+    _nActionStage++;
+}
+
+/// @brief 机器人说话（考虑替换为xfyun）
+/// @param answer_txt 说话内容
+void RobotAct::Speak(const std::string &answer_txt)
+{
+    robot_voice::StringToVoice::Request req;
+    robot_voice::StringToVoice::Response resp;
+    req.data = answer_txt;
+    bool ok = client_speak.call(req, resp);
+    if (ok)
+    {
+        printf("[Speak]send str2voice service success: %s", req.data.c_str());
+    }
+    else
+    {
+        ROS_ERROR("[Speak]failed to send str2voice service");
+    }
 }
