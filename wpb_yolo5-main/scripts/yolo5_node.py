@@ -57,7 +57,8 @@ def cbCommand(msg):#命令回调函数 可以在别的节点中向/yolo_cmd话�
 if __name__ == "__main__":
     rospy.init_node("yolo5_node")
     #改成自己的绝对路径
-    weights_path ='/home/robot/robot_ws/src/yolov5_ros/best_zjb4.pt'
+    #weights_path ='/home/robot/robot_ws/src/yolov5_ros/best_zjb4.pt'
+    weights_path ='/home/robot/robot_ws/src/yolov5_ros/weights/yolov5s.pt'
     yolov5_path = '/home/robot/robot_ws/src/yolov5_ros/yolov5'
 
     rospy.logwarn('Weights : ' + weights_path)
