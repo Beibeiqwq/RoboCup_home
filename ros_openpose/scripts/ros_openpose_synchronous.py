@@ -240,7 +240,8 @@ class rosOpenPose:
                 #self.label_4.setText(pos[predict_result(pointDistance(keyPoints[0]) +
                 #                                    pointAngle(keyPoints[0]))])
                 try:
-                    print(pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))])
+                    PoseResult = pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))]
+                    print(PoseResult)
                 
                 except Exception as e:
                     print(f"An error occurred: {e}")
@@ -321,7 +322,7 @@ class rosOpenPose:
             if self.display: self.frame = datum.cvOutputData.copy()
         except Exception as e:
             print(f"An error occurred: {e}")
-        self.pub.publish(fr)
+        self.pub.publish(fr)#poseresult
 
 def main():
     frame_id = rospy.get_param("~frame_id")

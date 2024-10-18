@@ -11,6 +11,8 @@
 #define TimerAct_READY            6
 #define TimerAct_FIND_PERSON      7
 #define TimerAct_FIND_OBJ         8
+#define TimerAct_GOTO_DUSTBIN     9
+#define TimerAct_PASS             10
 /*---------------初始化区---------------*/
 
 
@@ -114,7 +116,7 @@ void MainCallback(const ros::TimerEvent &e)
             {
                 stAct newAct;
                 newAct.nAct = ACT_FIND_PERSON; 
-                newAct.strTarget = Robot.bPeopleFound;
+                newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
             }
             else
@@ -125,7 +127,7 @@ void MainCallback(const ros::TimerEvent &e)
                     //Robot.ActionDetect();
                     stAct newAct;
                     newAct.nAct = ACT_ACTION_DETECT;
-                    newAct.strTarget = "";
+                    newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     Robot._bFixView_ok = false;
                 }
@@ -136,7 +138,7 @@ void MainCallback(const ros::TimerEvent &e)
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ)
         {
-            if (!Robot.bObjectFound)
+            if (!Robot.bObjectFound && Robot.bGrabDone != true)
             {
                 //Robot.SetSpeed(0, 0, 0.1);
                 stAct newAct;
@@ -151,13 +153,43 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_GRAB;
                 newAct.strTarget = object;
                 Robot.arAct.push_back(newAct);
+                TimerAct = TimerAct_GOTO_DUSTBIN;
+            }
+        }
+
+        if (TimerAct == TimerAct_GOTO_DUSTBIN)
+        {
+            if(Robot.bGrabDone == true)
+            {
+                stAct newAct;
+                newAct.nAct = ACT_GOTO;
+                newAct.strTarget = Robot.coord_dustbin;
+                Robot.arAct.push_back(newAct);
+                TimerAct = TimerAct_PASS;
+            }
+            else
+            {
+                TimerAct = TimerAct_FIND_OBJ;
+            }
+        }
+
+        if(TimerAct == TimerAct_PASS)
+        {
+            if(Robot.bGrabDone == true && Robot.bPassDone != true)
+            {
+                stAct newAct;
+                newAct.nAct = ACT_PASS;
+                newAct.strTarget = true;
+                Robot.arAct.push_back(newAct);
                 Robot.nLitterCount++;
-                //TimerAct = TimerAct_READY;
+                bAction = true;
+                TimerAct = TimerAct_READY;
             }
         }
 
         if(bAction == true)
         {
+            cout << "[TaskPub]任务确认 展示任务队列..." << endl;
             nState = STATE_CONFIRM;
         }
 
@@ -189,6 +221,7 @@ int main(int argc, char** argv)
                 Robot.Enter();
                 Robot.Speak("我已经进入场地了");
                 sleep(3);
+                nState = STATE_WAIT_CMD;
             }
         }
 

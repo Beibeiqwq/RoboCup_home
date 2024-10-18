@@ -79,6 +79,7 @@ public:
 	void ShowActs();
 	void Parameter_Check();
 	/*--------------导航类---------------*/
+	string coord_dustbin;
 	bool Goto(string);
 	void Enter();
 	void Exit();
