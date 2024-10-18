@@ -111,6 +111,11 @@ void RobotAct::AddNewWaypoint(string inStr)
     ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
 }
 
+void RobotAct::AddNewWaypoint(tfScalar tx, tfScalar ty)
+{
+
+}
+
 static int nLastActCode = -1;
 static geometry_msgs::Twist vel_cmd;
 // 主状态机
@@ -126,7 +131,11 @@ bool RobotAct::Main()
     // 语音识别的关键词
     int nKeyWord = -1;
     // 当前任务状态
-    nCurActCode = arAct[nCurActIndex].nAct;
+    std::advance(ARACT_IT, nCurActIndex);
+    nCurActCode = ARACT_IT->nAct;
+    //std::advance(ARACT_IT, -nCurActIndex);
+
+    
     // nCurActIndex == 当前任务ID
     // nLastActCode == 上一个任务ID
     switch (nCurActCode)
@@ -134,8 +143,10 @@ bool RobotAct::Main()
     case ACT_GOTO:
         if (nLastActCode != ACT_GOTO)
         {
-            string StrGoto = arAct[nCurActIndex].strTarget;
-            printf("[RobotAct] %d - Find %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            std::advance(ARACT_IT, nCurActIndex);
+            string StrGoto = ARACT_IT->strTarget;
+            //std::advance(ARACT_IT, -nCurActIndex);
+            printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             Goto(StrGoto);
             nCurActIndex++;
         }
@@ -144,13 +155,13 @@ bool RobotAct::Main()
     case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)
         {
-            printf("[RobotAct] %d - Grab %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Grab %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
             bGrabDone = false;
             GrabSwitch(true);
         }
         if (bGrabDone == true)
         {
-            printf("[RobotAct] %d - Grab %s done!\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Grab %s done!\n", nCurActIndex, ARACT_IT->strTarget.c_str());
             GrabSwitch(false);
             nCurActIndex++;
         }
@@ -159,13 +170,13 @@ bool RobotAct::Main()
     case ACT_PASS:
         if (nLastActCode != ACT_PASS)
         {
-            printf("[RobotAct] %d - Pass %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Pass %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
             bPassDone = false;
             PassSwitch(true);
         }
         if (bPassDone == true)
         {
-            printf("[RobotAct] %d - Pass %s done!\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Pass %s done! \n", nCurActIndex, ARACT_IT->strTarget.c_str());
             PassSwitch(false);
             nCurActIndex++;
         }
@@ -174,13 +185,13 @@ bool RobotAct::Main()
     case ACT_SPEAK:
         if (nLastActCode != ACT_SPEAK)
         {
-            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            strToSpeak = arAct[nCurActIndex].strTarget;
+            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
+            strToSpeak = ARACT_IT->strTarget;
             std_msgs::String rosSpeak;
             rosSpeak.data = strToSpeak;
             speak_pub.publish(rosSpeak);
             strToSpeak = "";
-            usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
+            usleep(ARACT_IT->nDuration * 1000 * 1000);
             nCurActIndex++;
         }
         break;
@@ -212,24 +223,24 @@ bool RobotAct::Main()
         //     break;
 
     case ACT_MOVE:
-        printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, arAct[nCurActIndex].fLinear_x, arAct[nCurActIndex].fLinear_y, arAct[nCurActIndex].fAngular_z);
-        vel_cmd.linear.x = arAct[nCurActIndex].fLinear_x;
-        vel_cmd.linear.y = arAct[nCurActIndex].fLinear_y;
+        printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, ARACT_IT->fLinear_x, ARACT_IT->fLinear_y, ARACT_IT->fAngular_z);
+        vel_cmd.linear.x = ARACT_IT->fLinear_x;
+        vel_cmd.linear.y = ARACT_IT->fLinear_y;
         vel_cmd.linear.z = 0;
         vel_cmd.angular.x = 0;
         vel_cmd.angular.y = 0;
-        vel_cmd.angular.z = arAct[nCurActIndex].fAngular_z;
+        vel_cmd.angular.z = ARACT_IT->fAngular_z;
         speed_pub.publish(vel_cmd);
 
-        usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
+        usleep(ARACT_IT->nDuration * 1000 * 1000);
         nCurActIndex++;
         break;
 
     case ACT_ADD_WAYPOINT:
         if (nLastActCode != ACT_ADD_WAYPOINT)
         {
-            printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            AddNewWaypoint(arAct[nCurActIndex].strTarget);
+            printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, ARACT_IT->strTarget.c_str());
+            AddNewWaypoint(ARACT_IT->strTarget);
             nCurActIndex++;
         }
         break;
@@ -307,14 +318,14 @@ string ActionText(stAct *inAct)
 void RobotAct::ShowActs()
 {
     printf("\n*********************************************\n");
-    printf("显示行为队列:\n");
+    printf("显示行为链表:\n");
     int nNumOfAct = arAct.size();
     stAct tmpAct;
-    for (int i = 0; i < nNumOfAct; i++)
+    for (auto ARACT_IT = arAct.begin(); ARACT_IT != arAct.end(); ARACT_IT++)
     {
-        tmpAct = arAct[i];
+        tmpAct = *ARACT_IT;
         string act_txt = ActionText(&tmpAct);
-        printf("行为 %d : %s\n", i + 1, act_txt.c_str());
+        printf("行为 %d : %s\n", ARACT_IT->nAct + 1, act_txt.c_str());
     }
     printf("*********************************************\n\n");
 }
@@ -618,14 +629,4 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
         }
     }
     return strRes;
-}
-
-/// @brief Yolov5开启状态
-/// @param inStr “start”为开启 开启后默认扫描一次
-/// @return
-void RobotAct::YoloStart()
-{
-    std_msgs::String Str;
-    Str.data = "start";
-    yolo_pub.publish(Str);
 }

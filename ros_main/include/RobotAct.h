@@ -1,9 +1,10 @@
-#ifndef ROBOT_ACT_H
+#ifndef ROBOT_ACT_H  
 #define ROBOT_ACT_H
 /*---------------头文件定义区---------------*/
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <vector>
+#include <list>
 #include "struct.h"
 #include <sstream>
 #include <string.h>
@@ -70,7 +71,7 @@ public:
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
 	/*--------------功能类---------------*/
-    vector<stAct> arAct; 
+    std::list<stAct> arAct; 
 	int nCurActIndex;
 	int nCurActCode;
 	void Init();
@@ -83,6 +84,7 @@ public:
 	void Enter();
 	void Exit();
 	void AddNewWaypoint(string);
+	void AddNewWaypoint(tfScalar tx, tfScalar ty);
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);
@@ -91,7 +93,7 @@ public:
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
-	//void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
+	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	string strDetect;		   // 物品识别
 	/*--------------语音类---------------*/
 	std::string strListen;
@@ -153,11 +155,12 @@ private:
 	//bool bArrive = false;	   // 到达标志位
 
 	bool bOpenpose = false;	   // 动作识别
-
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 	std::vector<BBox2D> recv_BBOX;
+	std::list<stAct>::iterator ARACT_IT = arAct.begin();
+
 };
 
 #endif 
