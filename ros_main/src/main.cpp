@@ -5,11 +5,12 @@
 #define STATE_WAIT_ENTR           1
 #define STATE_WAIT_CMD            2
 #define STATE_ACTION              3
-#define STATE_GOTO_EXIT           4
+#define STATE_CONFIRM             4
+#define STATE_GOTO_EXIT           5
 
-#define TimerAct_READY            5
-#define TimerAct_FIND_PERSON      6
-#define TimerAct_FIND_OBJ         7
+#define TimerAct_READY            6
+#define TimerAct_FIND_PERSON      7
+#define TimerAct_FIND_OBJ         8
 /*---------------初始化区---------------*/
 
 
@@ -20,15 +21,10 @@ ros::Timer Task_Timer;
 static int TimerAct = TimerAct_READY;// 任务状态
 static int nState = STATE_READY;     // 初始状态
 static int nOpenCount = 0;           // 开门延迟
-static string strDetect;             // 物品识别
 /*---------------数组/容器区---------------*/
 std::vector<BBox2D> YOLO_BBOX;                    // 识别结果
 std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 std::vector<BBox2D> recv_BBOX;
-std::vector<string> arKWPlacement;   // 地点
-std::vector<string> arKWObject;      // 物品
-std::vector<string> arKWPerson;      // 人名
-std::vector<string> arKWAction;      // 行为
 
 /// @brief 关键词初始化
 void Init_keywords()
@@ -93,53 +89,85 @@ void EntranceCB(const std_msgs::String::ConstPtr &msg)
 }
 
 /// @brief 时钟运行
-/// @param e 
+/// @param e
 void MainCallback(const ros::TimerEvent &e)
 {
-    if (TimerAct == TimerAct_READY)
+    if (nState == STATE_WAIT_CMD)
     {
-        cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
-        Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
-        // nPlaceCount++;
-        TimerAct = TimerAct_FIND_PERSON;
-        sleep(1);
-    }
+        bool bAction = false;
+        if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
+            nState = STATE_GOTO_EXIT;
 
-    if (TimerAct == TimerAct_FIND_PERSON)
-    {
-        if (!Robot.bPeopleFound)
+        if (TimerAct == TimerAct_READY)
         {
-            Robot.SetSpeed(0, 0, 0.1);
+            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[Robot.nPlaceCount] << endl;
+            stAct newAct;
+            newAct.nAct = ACT_GOTO;
+            newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
+            Robot.arAct.push_back(newAct);
+            TimerAct = TimerAct_FIND_PERSON;
         }
-        else
+
+        if (TimerAct == TimerAct_FIND_PERSON)
         {
-            Robot._bFixView = true;
-            if (Robot._bFixView_ok == true)
+            if (!Robot.bPeopleFound)
             {
-                Robot.ActionDetect();
-                Robot._bFixView_ok = false;
+                stAct newAct;
+                newAct.nAct = ACT_FIND_PERSON; 
+                newAct.strTarget = Robot.bPeopleFound;
+                Robot.arAct.push_back(newAct);
             }
-            Robot.nPeopleCount++;
-            TimerAct = TimerAct_FIND_OBJ;
+            else
+            {
+                Robot._bFixView = true;
+                if (Robot._bFixView_ok == true)
+                {
+                    //Robot.ActionDetect();
+                    stAct newAct;
+                    newAct.nAct = ACT_ACTION_DETECT;
+                    newAct.strTarget = "";
+                    Robot.arAct.push_back(newAct);
+                    Robot._bFixView_ok = false;
+                }
+                Robot.nPeopleCount++;
+                TimerAct = TimerAct_FIND_OBJ;
+            }
         }
+        string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
+        if (TimerAct == TimerAct_FIND_OBJ)
+        {
+            if (!Robot.bObjectFound)
+            {
+                //Robot.SetSpeed(0, 0, 0.1);
+                stAct newAct;
+                newAct.nAct = ACT_FIND_OBJ;
+                newAct.strTarget = "FIND_OBJ";
+                Robot.arAct.push_back(newAct);
+            }
+            else
+            {
+                //Robot.GrabSwitch(true);
+                stAct newAct;
+                newAct.nAct = ACT_GRAB;
+                newAct.strTarget = object;
+                Robot.arAct.push_back(newAct);
+                Robot.nLitterCount++;
+                //TimerAct = TimerAct_READY;
+            }
+        }
+
+        if(bAction == true)
+        {
+            nState = STATE_CONFIRM;
+        }
+
     }
 
-    if (TimerAct == TimerAct_FIND_OBJ)
+    if (nState == STATE_CONFIRM)
     {
-        if (!Robot.bObjectFound)
-        {
-            Robot.SetSpeed(0, 0, 0.1);
-        }
-        else
-        {
-            Robot.GrabSwitch(true);
-            Robot.nLitterCount++;
-            TimerAct = TimerAct_READY;
-        }
+        Robot.ShowActs();
+        nState = STATE_ACTION;
     }
-
-    if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
-        nState = STATE_GOTO_EXIT;
 }
 
 int main(int argc, char** argv)
@@ -159,6 +187,8 @@ int main(int argc, char** argv)
             if (nOpenCount > 20)
             {
                 Robot.Enter();
+                Robot.Speak("我已经进入场地了");
+                sleep(3);
             }
         }
 

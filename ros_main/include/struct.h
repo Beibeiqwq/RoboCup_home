@@ -12,6 +12,7 @@ using namespace std;
 #define ACT_ADD_WAYPOINT	7
 #define ACT_FIND_OBJ        8
 #define ACT_FIND_PERSON     9
+#define ACT_ACTION_DETECT   10
 
 typedef struct stAct
 {
