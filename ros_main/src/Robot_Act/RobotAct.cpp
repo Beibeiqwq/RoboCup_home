@@ -29,7 +29,7 @@ void RobotAct::Init()
     n.param<string>("place2", arKWPlacement[2], "kitchen");
     n.param<string>("place3", arKWPlacement[3], "bedroom");
     n.param<string>("place4", arKWPlacement[4], "dining room");
-    n.param<string>("dustbin",coord_dustbin,"dustbin");
+    n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float>("PID_Forward", _PID_Forward, 0.002);
     n.param<float>("PID_Turn", _PID_Turn, 0.003);
@@ -229,31 +229,41 @@ bool RobotAct::Main()
     case ACT_ADD_WAYPOINT:
         if (nLastActCode != ACT_ADD_WAYPOINT)
         {
-            printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            printf("[RobotAct] %d - Add waypoint %s \n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
             AddNewWaypoint(arAct[nCurActIndex].strTarget);
             nCurActIndex++;
         }
         break;
 
     case ACT_FIND_PERSON:
-        if(!bPeopleFound)
+        if (nLastActCode != ACT_FIND_PERSON)
         {
-            SetSpeed(0, 0, 0.1);
+            if (!bPeopleFound)
+            {
+                SetSpeed(0, 0, 0.1);
+            }
         }
         break;
-    
+
     case ACT_FIND_OBJ:
-        if(!bObjectFound)
+        if (nLastActCode != ACT_FIND_OBJ)
         {
-            SetSpeed(0, 0, 0.1);
+            if (!bObjectFound)
+            {
+                SetSpeed(0, 0, 0.1);
+            }
         }
         break;
 
     case ACT_ACTION_DETECT:
-        if(bPeopleFound == true)
+        if (nLastActCode != ACT_ACTION_DETECT)
         {
-            ActionDetect();
+            if (bPeopleFound == true)
+            {
+                ActionDetect();
+            }
         }
+        break;
 
     default:
         break;

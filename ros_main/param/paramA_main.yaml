@@ -5,5 +5,6 @@ place2: 'kitchen'
 place3: 'bedroom'
 place4: 'dining room'
 exit: 'exitA'
+dustbin : 'dustbinA'
 PID_Forward: 0.002
 PID_Turn: 0.003

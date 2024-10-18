@@ -229,6 +229,7 @@ int main(int argc, char** argv)
         {
             Robot.Main();
             nState = STATE_WAIT_CMD;
+            Robot.Reset();
         }
 
         if (nState == STATE_GOTO_EXIT)
