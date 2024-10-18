@@ -165,6 +165,7 @@ int main(int argc, char** argv)
         if (nState == STATE_ACTION)
         {
             Robot.Main();
+            nState = STATE_WAIT_CMD;
         }
 
         if (nState == STATE_GOTO_EXIT)
