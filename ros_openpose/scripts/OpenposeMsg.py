@@ -190,7 +190,7 @@ class MainOpenpose:
             if datum.poseKeypoints is None:
                 pass
             else:
-                print(f"Pose Keypoints: {datum.poseKeypoints}")
+                #print(f"Pose Keypoints: {datum.poseKeypoints}")
                 keyPoints = datum.poseKeypoints.tolist()
                 #self.label_4.setText(pos[predict_result(pointDistance(keyPoints[0]) +
                 #                                    pointAngle(keyPoints[0]))])
