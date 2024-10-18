@@ -449,9 +449,9 @@ int main(int argc, char **argv)
     tf_listener = new tf::TransformListener(); 
     ros::NodeHandle nh;
     //彩色图像订阅
-    ros::Subscriber rgb_sub = nh.subscribe("/kinect2/qhd/image_color_rect", 1 , callbackColorImage);
+    ros::Subscriber rgb_sub = nh.subscribe("/kinect2/robot/image_color_rect", 1 , callbackColorImage);
     //点云图像订阅
-    //ros::Subscriber pc_sub = nh.subscribe("/kinect2/qhd/points", 1 , callbackPointCloud);
+    ros::Subscriber pc_sub = nh.subscribe("/kinect2/robot/points", 1 , callbackPointCloud);
     //命令订阅
     ros::Subscriber cmd_sub = nh.subscribe("/yolo/cmd", 1 , callbackCmd);
     //2D识别结果订阅

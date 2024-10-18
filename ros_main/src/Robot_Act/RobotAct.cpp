@@ -133,7 +133,7 @@ bool RobotAct::Main()
     // 当前任务状态
     std::advance(ARACT_IT, nCurActIndex);
     nCurActCode = ARACT_IT->nAct;
-    //std::advance(ARACT_IT, -nCurActIndex);
+    std::advance(ARACT_IT, -nCurActIndex);
 
     
     // nCurActIndex == 当前任务ID
@@ -145,10 +145,11 @@ bool RobotAct::Main()
         {
             std::advance(ARACT_IT, nCurActIndex);
             string StrGoto = ARACT_IT->strTarget;
-            //std::advance(ARACT_IT, -nCurActIndex);
+            std::advance(ARACT_IT, -nCurActIndex);
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             Goto(StrGoto);
             nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -163,7 +164,9 @@ bool RobotAct::Main()
         {
             printf("[RobotAct] %d - Grab %s done!\n", nCurActIndex, ARACT_IT->strTarget.c_str());
             GrabSwitch(false);
+            std::advance(ARACT_IT, -nCurActIndex);
             nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -178,7 +181,9 @@ bool RobotAct::Main()
         {
             printf("[RobotAct] %d - Pass %s done! \n", nCurActIndex, ARACT_IT->strTarget.c_str());
             PassSwitch(false);
+            std::advance(ARACT_IT, -nCurActIndex);
             nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -192,7 +197,9 @@ bool RobotAct::Main()
             speak_pub.publish(rosSpeak);
             strToSpeak = "";
             usleep(ARACT_IT->nDuration * 1000 * 1000);
+            std::advance(ARACT_IT, -nCurActIndex);
             nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -233,7 +240,9 @@ bool RobotAct::Main()
         speed_pub.publish(vel_cmd);
 
         usleep(ARACT_IT->nDuration * 1000 * 1000);
-        nCurActIndex++;
+        std::advance(ARACT_IT, -nCurActIndex);
+            nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         break;
 
     case ACT_ADD_WAYPOINT:
@@ -241,7 +250,9 @@ bool RobotAct::Main()
         {
             printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, ARACT_IT->strTarget.c_str());
             AddNewWaypoint(ARACT_IT->strTarget);
+            std::advance(ARACT_IT, -nCurActIndex);
             nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -364,6 +375,33 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
     speed_pub.publish(vel_cmd);
 }
 
+void RobotAct::YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg)
+{
+    cout << "[YOLOV5CB_3D]:接收到Yolov5数据" << endl;
+    YOLO_BBOX.clear();
+    int nNum = msg.name.size();
+
+    if (nNum > 0)
+    {
+        BBox3D box_object;
+        for (int i = 0; i < nNum; i++)
+        {
+            box_object.name = msg.name[i];
+            box_object.frame_id = msg.frame_id[i];
+            box_object.x_min  = msg.x_min[i];
+            box_object.x_max  = msg.x_max[i];
+            box_object.y_min  = msg.y_min[i];
+            box_object.y_max  = msg.y_max[i];
+            box_object.z_min  = msg.z_min[i];
+            box_object.z_max  = msg.z_max[i]; 
+            recv_BBOX_3D.push_back(box_object);
+            strDetect = msg.name[i];
+            string Peoplename = FindWord(box_object.name, arKWPerson);
+        }
+        YOLO_BBOX_3D = recv_BBOX_3D;
+    }
+}
+
 /// @brief YOLO回调
 /// @param msg
 void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
@@ -387,14 +425,14 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             recv_BBOX.push_back(box_object);
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
-            if (Peoplename.length() > 0)
-            {
-                nYoloPeople = i;
-                _nImgHeight = box_object.top - box_object.bottom;
-                _nImgWidth = box_object.right - box_object.left;
-                _nTargetX = 128;
-                _nTargetY = 128;
-            }
+            // if (Peoplename.length() > 0)
+            // {
+            //     nYoloPeople = i;
+            //     _nImgHeight = box_object.top - box_object.bottom;
+            //     _nImgWidth = box_object.right - box_object.left;
+            //     _nTargetX = 128;
+            //     _nTargetY = 128;
+            // }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
     }

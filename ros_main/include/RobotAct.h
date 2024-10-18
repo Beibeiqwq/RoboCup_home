@@ -59,6 +59,19 @@ typedef struct BBox2D
     float probability;
 } BBox2D;
 
+typedef struct BBox3D
+{
+	std::string name;
+	std::string frame_id;
+	float x_min;
+	float x_max;
+	float y_min;
+	float y_max;
+	float z_min;
+	float z_max;
+} BBox3D;
+
+
 using namespace cv;
 class RobotAct
 {
@@ -91,10 +104,11 @@ public:
     /*--------------图像类---------------*/
 	void YoloStart();
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
+	void YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
-	string strDetect;		   // 物品识别
+	string strDetect;		   // 识别到的物体或人名
 	/*--------------语音类---------------*/
 	std::string strListen;
 	void Speak(const std::string &answer_txt);
@@ -157,8 +171,10 @@ private:
 	bool bOpenpose = false;	   // 动作识别
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
+	std::vector<BBox3D> YOLO_BBOX_3D;
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 	std::vector<BBox2D> recv_BBOX;
+	std::vector<BBox3D> recv_BBOX_3D;
 	std::list<stAct>::iterator ARACT_IT = arAct.begin();
 
 };

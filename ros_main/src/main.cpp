@@ -25,6 +25,7 @@ static string strDetect;             // 物品识别
 std::vector<BBox2D> YOLO_BBOX;                    // 识别结果
 std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 std::vector<BBox2D> recv_BBOX;
+// std::vector<BBox3D> recv_BBOX_3D;
 std::vector<string> arKWPlacement;   // 地点
 std::vector<string> arKWObject;      // 物品
 std::vector<string> arKWPerson;      // 人名
