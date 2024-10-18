@@ -12,7 +12,7 @@ from ros_openpose.msg import Frame
 
 def callback(msg):
     text = [bodyPart.pixel for person in msg.persons for bodyPart in person.bodyParts]
-    rospy.loginfo('%s\n' % text)
+    #rospy.loginfo('%s\n' % text)
 
 
 def main():

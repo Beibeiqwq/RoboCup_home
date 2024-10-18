@@ -35,7 +35,7 @@ Date: 2019/11/23
     <arg name="openpose_args" value="--hand --disable_multi_thread --model_folder /home/bei/openpose/openpose/models/" />
   ?>
   <!-- full path to the model dir of openpose -->
-  <arg name="openpose_args" value="--model_folder /home/bei/openpose/openpose/models/ --net_resolution 320x176" />
+  <arg name="openpose_args" value="--model_folder /home/bei/openpose/openpose/models --net_resolution 320x176 --number_people_max 1 --render_threshold 0.01" />
 
   <!-- rostopic to publish the 3D skeleton data -->
   <arg name="pub_topic" default="/frame" />

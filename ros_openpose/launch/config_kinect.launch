@@ -20,7 +20,7 @@ Date: 2019/11/23
 
   <!-- kinect camera provide depth information.
   hence unset the flag. -->
-  <arg name="no_depth" default="false" />
+  <arg name="no_depth" default="true" />
 
   <!-- note that the following parameters are going to assigned by other launch file upon call. -->
   <arg name="rviz" default="" />

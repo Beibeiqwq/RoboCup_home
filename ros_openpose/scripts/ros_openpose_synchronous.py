@@ -26,6 +26,9 @@ pos = ["站立(正面）", "躺（正面）", "坐（正面）", "平坐", "行�
 # Import Openpose (Ubuntu)
 rospy.init_node('ros_openpose')
 py_openpose_path = rospy.get_param("~py_openpose_path")
+
+#dir_path = os.path.dirname(os.path.realpath(__file__))
+
 try:
     # If you run `make install` (default path is `/usr/local/python` for Ubuntu)
     sys.path.append(py_openpose_path)
@@ -66,7 +69,7 @@ def predict_result(datas=None):
         datas = []
     model = Classification(30, 200, 300, 100, 24)
     model.load_state_dict(torch.load(
-        "../model_pth/ros_pose.pth", map_location='cpu'))
+        "/home/bei/robot_ws/src/ros_openpose/model_pth/ros_pose.pth", map_location='cpu'))
     predict = model(Variable(torch.Tensor([datas]).float())).detach().cpu().numpy().tolist()[0]
     predict = predict.index(max(predict))
 
@@ -218,15 +221,30 @@ class rosOpenPose:
             rospy.logerr("CvBridge Error: {0}".format(e))
 
         # Push data to OpenPose and block while waiting for results
-        datum = op.Datum()
-        datum.cvInputData = image
-        self.emplaceAndPop(datum)
-
+        try:
+            datum = op.Datum()
+            datum.cvInputData = image
+            self.emplaceAndPop(datum)
+        except Exception as e:
+            print(f"An error occurred: {e}")
         pose_kp = datum.poseKeypoints
         lhand_kp = datum.handKeypoints[0]
         rhand_kp = datum.handKeypoints[1]
-        keyPoints = datum.poseKeypoints.tolist()
-        print(pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))])
+        # keyPoints = datum.poseKeypoints.tolist()
+        # print(pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))])
+        if datum.poseKeypoints is None:
+                pass
+        else:
+                #print(f"Pose Keypoints: {datum.poseKeypoints}")
+                keyPoints = datum.poseKeypoints.tolist()
+                #self.label_4.setText(pos[predict_result(pointDistance(keyPoints[0]) +
+                #                                    pointAngle(keyPoints[0]))])
+                try:
+                    print(pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))])
+                
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
         
         # Set number of people detected
         if self.detect(pose_kp):
@@ -250,6 +268,7 @@ class rosOpenPose:
             hand_part_count = rhand_kp.shape[1]
 
         # Handle body points
+        
         fr.persons = [Person() for _ in range(num_persons)]
         if num_persons != 0:
             # Perform vectorized 3D computation for body keypoints
@@ -298,8 +317,10 @@ class rosOpenPose:
                         arr.point.x = x
                         arr.point.y = y
                         arr.point.z = z
-
-        if self.display: self.frame = datum.cvOutputData.copy()
+        try:
+            if self.display: self.frame = datum.cvOutputData.copy()
+        except Exception as e:
+            print(f"An error occurred: {e}")
         self.pub.publish(fr)
 
 def main():
@@ -344,12 +365,13 @@ def main():
         if display:
             while not rospy.is_shutdown():
                 if rop.frame is not None:
-                    cv2.imshow("Ros OpenPose", rop.frame)
+                    #cv2.imshow("Ros OpenPose", rop.frame)
                     cv2.waitKey(1)
         else:
             rospy.spin()
 
     except Exception as e:
+        print(f"An error occurred: {e}")
         rospy.logerr(e)
         sys.exit(-1)
 
