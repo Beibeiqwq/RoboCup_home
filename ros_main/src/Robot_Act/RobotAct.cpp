@@ -111,36 +111,61 @@ void RobotAct::AddNewWaypoint(string inStr)
     ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
 }
 //
-void RobotAct::AddNewWaypoint(string inStr, float tx, float ty, float tz)
+void RobotAct::AddNewWaypoint_yolo(string inStr)
 {
+    // tf::TransformListener listener;
+    // tf::StampedTransform transform;
+
+    // geometry_msgs::PointStamped objToKinect_pose;
+    // objToKinect_pose.header.frame_id = "/kinect2_ir_optical_frame";
+    // //recog_obj_pose.header.stamp = ros::Time();
+    // objToKinect_pose.point.x = tx;
+    // objToKinect_pose.point.y = ty;
+    // objToKinect_pose.point.z = tz;
+    // geometry_msgs::PointStamped objToMap_pose;
+    
+    // try
+    // {
+    //     listener.waitForTransform("/map", "/kinect2_ir_optical_frame", ros::Time(0), ros::Duration(10.0));
+    //     listener.lookupTransform("/map", "/" + inStr, ros::Time(0), transform);
+    //     listener.transformPoint("/map", objToKinect_pose, objToMap_pose);
+    // }
+    // catch (tf::TransformException &ex)
+    // {
+    //     ROS_ERROR("[lookupTransform] %s", ex.what());
+    //     return;
+    // }
+    // waterplus_map_tools::Waypoint new_waypoint;
+    // tf::poseStampedTFToMsg(, objToMap_pose);
+    // new_waypoint.name = inStr;
+    // new_waypoint.pose = objToMap_pose.pose;
+    // add_waypoint_pub.publish(new_waypoint);
+
     tf::TransformListener listener;
     tf::StampedTransform transform;
-
-    geometry_msgs::PointStamped objToKinect_pose;
-    objToKinect_pose.header.frame_id = "/kinect2_ir_optical_frame";
-    //recog_obj_pose.header.stamp = ros::Time();
-    objToKinect_pose.point.x = tx;
-    objToKinect_pose.point.y = ty;
-    objToKinect_pose.point.z = tz;
-    geometry_msgs::PointStamped objToMap_pose;
-
     try
     {
-        listener.waitForTransform("/map", "/kinect2_ir_optical_frame", ros::Time(0), ros::Duration(10.0));
+        listener.waitForTransform("/map", "/" + inStr, ros::Time(0), ros::Duration(10.0));
         listener.lookupTransform("/map", "/" + inStr, ros::Time(0), transform);
-        listener.transformPoint("/map", objToKinect_pose, objToMap_pose);
     }
     catch (tf::TransformException &ex)
     {
         ROS_ERROR("[lookupTransform] %s", ex.what());
         return;
     }
+
+    float tx = transform.getOrigin().x();
+    float ty = transform.getOrigin().y();
+    tf::Stamped<tf::Pose> p = tf::Stamped<tf::Pose>(tf::Pose(transform.getRotation(), tf::Point(tx, ty, 0.0)), ros::Time::now(), "map");
+    geometry_msgs::PoseStamped new_pos;
+    tf::poseStampedTFToMsg(p, new_pos);
+
     waterplus_map_tools::Waypoint new_waypoint;
     new_waypoint.name = inStr;
-    new_waypoint.pose = objToMap_pose.pose;
+    new_waypoint.pose = new_pos.pose;
     add_waypoint_pub.publish(new_waypoint);
 
-
+    ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
 
 }
 

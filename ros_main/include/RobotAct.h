@@ -97,7 +97,8 @@ public:
 	void Enter();
 	void Exit();
 	void AddNewWaypoint(string);
-	void AddNewWaypoint(string inStr, float tx, float ty, float tz);
+	void AddNewWaypoint_yolo(string inStr);
+	
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);

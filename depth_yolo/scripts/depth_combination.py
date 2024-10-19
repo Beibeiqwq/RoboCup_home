@@ -10,6 +10,7 @@ import numpy as np
 import math
 import tf
 import tf2_ros
+from depth_yolo.msg import tfpoint
 
 height = 540
 width = 960
@@ -18,7 +19,7 @@ parent_frame = "kinect2_ir_optical_frame"
 
 def yolov5_callback(data):
     global p,if_pcl_ready
-    
+    tfp_info_pub = rospy.Publisher('tfpoint_topic', tfpoint, queeu_size = 10)
     obj_tf = tf.TransformBroadcaster()
     if(if_pcl_ready):
         bounding_boxes = data.bounding_boxes
@@ -45,6 +46,12 @@ def yolov5_callback(data):
                 z = z/valid_num
             #obj_tf.sendTransform((z, -x, -y),tf.transformations.quaternion_from_euler(0, 0, 0),rospy.Time.now(),i.Class+str(id),parent_frame)
             obj_tf.sendTransform((x, y, z),tf.transformations.quaternion_from_euler(0, -math.pi/2, math.pi/2),rospy.Time.now(),i.Class+str(id),parent_frame)
+            tfpoint_msg = tfpoint()
+            tfpoint_msg.tx = x
+            tfpoint_msg.ty = y
+            tfpoint_msg.tz = z
+            tfp_info_pub.publish(tfpoint_msg)
+            rospy.loginfo("发布tfpoint消息")
             id = id + 1
         
 
@@ -60,6 +67,7 @@ def depth_callback(data):
     
 def listener():
     rospy.init_node('depth_combination', anonymous=True)
+    
     rospy.Subscriber("/yolov5/BoundingBoxes", BoundingBoxes, yolov5_callback)
     rospy.Subscriber("/kinect2/qhd/points", PointCloud2, depth_callback)
     rospy.spin()
