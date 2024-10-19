@@ -110,9 +110,37 @@ void RobotAct::AddNewWaypoint(string inStr)
 
     ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
 }
-
-void RobotAct::AddNewWaypoint(tfScalar tx, tfScalar ty)
+//
+void RobotAct::AddNewWaypoint(string inStr, float tx, float ty, float tz)
 {
+    tf::TransformListener listener;
+    tf::StampedTransform transform;
+
+    geometry_msgs::PointStamped objToKinect_pose;
+    objToKinect_pose.header.frame_id = "/kinect2_ir_optical_frame";
+    //recog_obj_pose.header.stamp = ros::Time();
+    objToKinect_pose.point.x = tx;
+    objToKinect_pose.point.y = ty;
+    objToKinect_pose.point.z = tz;
+    geometry_msgs::PointStamped objToMap_pose;
+
+    try
+    {
+        listener.waitForTransform("/map", "/kinect2_ir_optical_frame", ros::Time(0), ros::Duration(10.0));
+        listener.lookupTransform("/map", "/" + inStr, ros::Time(0), transform);
+        listener.transformPoint("/map", objToKinect_pose, objToMap_pose);
+    }
+    catch (tf::TransformException &ex)
+    {
+        ROS_ERROR("[lookupTransform] %s", ex.what());
+        return;
+    }
+    waterplus_map_tools::Waypoint new_waypoint;
+    new_waypoint.name = inStr;
+    new_waypoint.pose = objToMap_pose.pose;
+    add_waypoint_pub.publish(new_waypoint);
+
+
 
 }
 

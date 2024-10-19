@@ -97,7 +97,7 @@ public:
 	void Enter();
 	void Exit();
 	void AddNewWaypoint(string);
-	void AddNewWaypoint(tfScalar tx, tfScalar ty);
+	void AddNewWaypoint(string inStr, float tx, float ty, float tz);
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);
