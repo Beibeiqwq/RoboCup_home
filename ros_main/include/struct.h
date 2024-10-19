@@ -3,15 +3,15 @@
 #include<string>
 using namespace std;
 #define ACT_REMOVE          0
-#define ACT_GOTO			1
+#define ACT_GOTO			1			//前往
 #define ACT_GRAB			2
 #define ACT_PASS			3
-#define ACT_SPEAK			4
-#define ACT_LISTEN			5
+#define ACT_SPEAK			4			//说
+#define ACT_LISTEN			5			//听
 #define ACT_MOVE			6
-#define ACT_ADD_WAYPOINT	7
-#define ACT_FIND_OBJ        8
-#define ACT_FIND_PERSON     9
+#define ACT_ADD_WAYPOINT	7			//添加航点
+#define ACT_FIND_OBJ        8			//物体识别
+#define ACT_FIND_PERSON     9			//找人
 
 typedef struct stAct
 {
