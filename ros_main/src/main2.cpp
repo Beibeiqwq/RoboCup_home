@@ -110,6 +110,7 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
+            
             Robot.Main();
         }
 
@@ -126,50 +127,50 @@ int main(int argc, char** argv)
     return 0; 
 }
 
-        void MainCallback(const ros::TimerEvent& e)
-        {
-            if(nAct == ACT_REMOVE )
-            {
-                cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
-                Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
-                //nPlaceCount++;
-                nAct = ACT_FIND_PERSON;
-                sleep(1);                
-            }
+        // void MainCallback(const ros::TimerEvent& e)
+        // {
+        //     if(nAct == ACT_REMOVE )
+        //     {
+        //         cout << "[Main]正在前往地点：" << arKWPlacement[Robot.nPlaceCount] << endl;
+        //         Robot.Goto(arKWPlacement[Robot.nPlaceCount++]);
+        //         //nPlaceCount++;
+        //         nAct = ACT_FIND_PERSON;
+        //         sleep(1);                
+        //     }
 
-            if(nAct == ACT_FIND_PERSON )
-            {
-                if (!Robot.bPeopleFound)
-                {
-                    Robot.SetSpeed(0, 0, 0.1);
-                }
-                else
-                {
-                    Robot._bFixView = true;
-                    if(Robot._bFixView_ok == true)
-                    {
-                        Robot.ActionDetect();
-                        Robot._bFixView_ok = false;
-                    }
-                    Robot.nPeopleCount++;
-                    nAct = ACT_FIND_OBJ;
-                }
-            }
+        //     if(nAct == ACT_FIND_PERSON )
+        //     {
+        //         if (!Robot.bPeopleFound)
+        //         {
+        //             Robot.SetSpeed(0, 0, 0.1);
+        //         }
+        //         else
+        //         {
+        //             Robot._bFixView = true;
+        //             if(Robot._bFixView_ok == true)
+        //             {
+        //                 Robot.ActionDetect();
+        //                 Robot._bFixView_ok = false;
+        //             }
+        //             Robot.nPeopleCount++;
+        //             nAct = ACT_FIND_OBJ;
+        //         }
+        //     }
 
-            if(nAct == ACT_FIND_OBJ )
-            {
-                if(!Robot.bObjectFound)
-                {
-                    Robot.SetSpeed(0, 0, 0.1);
-                }
-                else
-                {
-                    Robot.GrabSwitch(true);
-                    Robot.nLitterCount++;
-                    nAct = ACT_REMOVE;
-                }
-            }
+        //     if(nAct == ACT_FIND_OBJ )
+        //     {
+        //         if(!Robot.bObjectFound)
+        //         {
+        //             Robot.SetSpeed(0, 0, 0.1);
+        //         }
+        //         else
+        //         {
+        //             Robot.GrabSwitch(true);
+        //             Robot.nLitterCount++;
+        //             nAct = ACT_REMOVE;
+        //         }
+        //     }
 
-            if((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone== true)
-                nState = STATE_GOTO_EXIT;
-        }
+        //     if((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone== true)
+        //         nState = STATE_GOTO_EXIT;
+        // }
