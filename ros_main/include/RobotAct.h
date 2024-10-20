@@ -98,7 +98,8 @@ public:
 	void Exit();
 	void AddNewWaypoint(string);
 	void AddNewWaypoint_yolo(string inStr);
-	string coord_dustbin;
+	string coord_dustbin;                                  	//垃圾桶名字
+	bool bArrive = false;
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);

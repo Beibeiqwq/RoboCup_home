@@ -201,7 +201,7 @@ bool RobotAct::Main()
             string StrGoto = ARACT_IT->strTarget;
             std::advance(ARACT_IT, -nCurActIndex);
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
-            Goto(StrGoto);
+            bArrive = Goto(StrGoto);
             nCurActIndex++;
             std::advance(ARACT_IT, nCurActIndex);
         }
@@ -210,7 +210,10 @@ bool RobotAct::Main()
     case ACT_FIND_PERSON:
         if (nLastActCode != ACT_FIND_PERSON)
         {
-            
+            printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
+            for (int i = 0; i < 3; i++)
+            AddNewWaypoint_yolo(YOLO_BBOX_3D[i]);
+
         }
 
     case ACT_ADD_WAYPOINT:
@@ -444,7 +447,7 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
 void RobotAct::YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg)
 {
     cout << "[YOLOV5CB_3D]:接收到Yolov5数据" << endl;
-    YOLO_BBOX.clear();
+    YOLO_BBOX_3D.clear();
     int nNum = msg.name.size();
 
     if (nNum > 0)

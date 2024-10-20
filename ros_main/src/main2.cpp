@@ -110,7 +110,7 @@ void MainCallback(const ros::TimerEvent &e)
             TimerAct = TimerAct_FIND_PERSON;
         }
 
-        if (TimerAct == TimerAct_FIND_PERSON)
+        if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive ==true)
         {
             if (!Robot.bPeopleFound)
             {
