@@ -388,7 +388,7 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
 /// @param msg
 void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
 {
-    cout << "[YOLOV5CB]:接收到Yolov5数据" << endl;
+    //cout << "[YOLOV5CB]:接收到Yolov5数据" << endl;
     YOLO_BBOX.clear();
     int nNum = msg.name.size();
     bool bAction = false;

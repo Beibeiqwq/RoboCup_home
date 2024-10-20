@@ -23,6 +23,7 @@ ros::Timer Task_Timer;
 static int TimerAct = TimerAct_READY;// 任务状态
 static int nState = STATE_READY;     // 初始状态
 static int nOpenCount = 0;           // 开门延迟
+static bool bMainFinish = true;
 /*---------------数组/容器区---------------*/
 std::vector<BBox2D> YOLO_BBOX;                    // 识别结果
 std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
@@ -112,25 +113,30 @@ void MainCallback(const ros::TimerEvent &e)
 
         if (TimerAct == TimerAct_FIND_PERSON)
         {
-            if (!Robot.bPeopleFound)
+            if (!Robot.bPeopleFound) //在回调函数中实时更新
             {
-                cout << "未找到人" << endl;
+                cout << "[test]未找到人" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
+                bAction = true;
             }
             else
             {
+                cout << "[test]找到人了" << endl;
                 Robot._bFixView = true;
-                if (Robot._bFixView_ok == true)
+                if (Robot._bFixView_ok == true) //回调函数中视角修正
                 {
+                    cout << "[test]动作识别加入 " << endl;
+
                     //Robot.ActionDetect();
                     stAct newAct;
                     newAct.nAct = ACT_ACTION_DETECT;
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     Robot._bFixView_ok = false;
+                    bAction = true;
                 }
                 Robot.nPeopleCount++;
                 TimerAct = TimerAct_FIND_OBJ;
@@ -141,14 +147,17 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if (!Robot.bObjectFound && Robot.bGrabDone != true)
             {
+                cout << "[test]未找到物品" << endl;
                 //Robot.SetSpeed(0, 0, 0.1);
                 stAct newAct;
                 newAct.nAct = ACT_FIND_OBJ;
                 newAct.strTarget = "FIND_OBJ";
                 Robot.arAct.push_back(newAct);
+                bAction = true;
             }
             else
             {
+                cout << "[test]找到物品" << endl;
                 //Robot.GrabSwitch(true);
                 stAct newAct;
                 newAct.nAct = ACT_GRAB;
@@ -162,6 +171,7 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if(Robot.bGrabDone == true)
             {
+                cout << "[test]抓取完成" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_GOTO;
                 newAct.strTarget = Robot.coord_dustbin;
@@ -170,7 +180,8 @@ void MainCallback(const ros::TimerEvent &e)
             }
             else
             {
-                TimerAct = TimerAct_FIND_OBJ;
+                //TimerAct = TimcerAct_FIND_OBJ;
+                cout <<"等待抓取结束 " << endl;
             }
         }
 
@@ -178,6 +189,7 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if(Robot.bGrabDone == true && Robot.bPassDone != true)
             {
+                cout << "[test]开始放置" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_PASS;
                 newAct.strTarget = true;
@@ -229,9 +241,12 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
-            Robot.Main();
-            nState = STATE_WAIT_CMD;
-            Robot.Reset();
+            bMainFinish = Robot.Main();
+            if(bMainFinish == false)
+            {
+                nState = STATE_WAIT_CMD;
+                Robot.Reset();
+            }
         }
 
         if (nState == STATE_GOTO_EXIT)
