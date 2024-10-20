@@ -137,7 +137,7 @@ bool RobotAct::Main()
         {
             string StrGoto = arAct[nCurActIndex].strTarget;
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            Goto(StrGoto);
+            bArrive = Goto(StrGoto);
             nCurActIndex++;
         }
         break;

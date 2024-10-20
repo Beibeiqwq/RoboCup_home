@@ -108,10 +108,11 @@ void MainCallback(const ros::TimerEvent &e)
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
             Robot.arAct.push_back(newAct);
+            bAction = true;
             TimerAct = TimerAct_FIND_PERSON;
         }
 
-        if (TimerAct == TimerAct_FIND_PERSON)
+        if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive == true)
         {
             if (!Robot.bPeopleFound) //在回调函数中实时更新
             {
@@ -125,7 +126,7 @@ void MainCallback(const ros::TimerEvent &e)
             else
             {
                 cout << "[test]找到人了" << endl;
-                Robot._bFixView = true;
+                //Robot._bFixView = true;
                 if (Robot._bFixView_ok == true) //回调函数中视角修正
                 {
                     cout << "[test]动作识别加入 " << endl;

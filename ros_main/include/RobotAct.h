@@ -80,6 +80,7 @@ public:
 	void Parameter_Check();
 	/*--------------导航类---------------*/
 	string coord_dustbin;
+	bool bArrive = false;	   // 到达标志位
 	bool Goto(string);
 	void Enter();
 	void Exit();
@@ -151,7 +152,6 @@ private:
 	float _PID_Forward = 0;	   // 修正前进PID系数
 	float _PID_Turn = 0;	   // 修正转向PID系数
 
-	//bool bArrive = false;	   // 到达标志位
 
 	bool bOpenpose = false;	   // 动作识别
 	/*---------------数组/容器区---------------*/
