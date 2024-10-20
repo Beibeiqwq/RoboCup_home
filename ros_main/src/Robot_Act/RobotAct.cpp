@@ -206,6 +206,14 @@ bool RobotAct::Main()
         }
         break;
 
+    case ACT_FIND_PERSON:
+        if (nLastActCode != ACT_FIND_PERSON)
+        {
+            
+        }
+
+
+
     case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)
         {
