@@ -240,7 +240,7 @@ bool RobotAct::Main()
         {
             if (!bPeopleFound)
             {
-                SetSpeed(0, 0, 0.1);
+                SetSpeed(0, 0, 0.2);
             }
         }
         break;
@@ -250,7 +250,7 @@ bool RobotAct::Main()
         {
             if (!bObjectFound)
             {
-                SetSpeed(0, 0, 0.1);
+                SetSpeed(0, 0, 0.2);
             }
         }
         break;
@@ -331,6 +331,16 @@ string ActionText(stAct *inAct)
         // stringStream << inAct->fFollowDist;
         std::string retStr = stringStream.str();
         ActText += retStr;
+    }
+    if (inAct->nAct == ACT_FIND_PERSON)
+    {
+        ActText = "寻找人物 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_ACTION_DETECT)
+    {
+        ActText = "动作识别 ";
+        ActText += inAct->strTarget;
     }
     return ActText;
 }
@@ -598,6 +608,7 @@ void RobotAct::ActionDetect()
     if (_nActionStage == 1)
     {
         Speak("OK You can perform next action");
+        bActionDetect = true;
         nPeopleCount++;
     }
     //string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);

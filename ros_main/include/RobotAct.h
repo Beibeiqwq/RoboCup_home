@@ -118,6 +118,7 @@ public:
 	int nPlaceCount  = 1;	   // 地点计数
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
+	bool bActionDetect= false; // 动作标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher speak_pub;

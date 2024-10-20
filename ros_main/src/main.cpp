@@ -121,7 +121,7 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
-                bAction = true;
+                //bAction = true;
             }
             else
             {
@@ -129,7 +129,7 @@ void MainCallback(const ros::TimerEvent &e)
                 //Robot._bFixView = true;
                 if (Robot._bFixView_ok == true) //回调函数中视角修正
                 {
-                    cout << "[test]动作识别加入 " << endl;
+                    cout << "[test]动作识别 " << endl;
 
                     //Robot.ActionDetect();
                     stAct newAct;
@@ -137,14 +137,15 @@ void MainCallback(const ros::TimerEvent &e)
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     Robot._bFixView_ok = false;
-                    bAction = true;
+                    //bAction = true;
                 }
-                Robot.nPeopleCount++;
+                bAction = true;
+                //Robot.nPeopleCount++;
                 TimerAct = TimerAct_FIND_OBJ;
             }
         }
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ)
+        if (TimerAct == TimerAct_FIND_OBJ && Robot.bActionDetect == true)
         {
             if (!Robot.bObjectFound && Robot.bGrabDone != true)
             {
