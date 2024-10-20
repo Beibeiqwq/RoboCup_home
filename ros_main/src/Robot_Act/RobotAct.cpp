@@ -24,11 +24,12 @@ void RobotAct::Init()
     ros::NodeHandle n("~");
     /*---------------参数导入区---------------*/
     n.param<string>("name", _name_yaml, "default");
-    n.param<string>("enter", _coord_cmd, "cmdA");
+    n.param<string>("enter", _coord_cmd, "cmd");
     n.param<string>("place1", arKWPlacement[1], "living room");
     n.param<string>("place2", arKWPlacement[2], "kitchen");
     n.param<string>("place3", arKWPlacement[3], "bedroom");
     n.param<string>("place4", arKWPlacement[4], "dining room");
+    n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float>("PID_Forward", _PID_Forward, 0.002);
     n.param<float>("PID_Turn", _PID_Turn, 0.003);
@@ -212,7 +213,11 @@ bool RobotAct::Main()
             
         }
 
+    case ACT_ADD_WAYPOINT:
+        if(nLastActCode != ACT_ADD_WAYPOINT)
+        {
 
+        }
 
     case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)
@@ -306,16 +311,16 @@ bool RobotAct::Main()
             std::advance(ARACT_IT, nCurActIndex);
         break;
 
-    case ACT_ADD_WAYPOINT:
-        if (nLastActCode != ACT_ADD_WAYPOINT)
-        {
-            printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            AddNewWaypoint(ARACT_IT->strTarget);
-            std::advance(ARACT_IT, -nCurActIndex);
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
-        }
-        break;
+    // case ACT_ADD_WAYPOINT:
+    //     if (nLastActCode != ACT_ADD_WAYPOINT)
+    //     {
+    //         printf("[ActMgr] %d - Add waypoint %s \n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         AddNewWaypoint(ARACT_IT->strTarget);
+    //         std::advance(ARACT_IT, -nCurActIndex);
+    //         nCurActIndex++;
+    //         std::advance(ARACT_IT, nCurActIndex);
+    //     }
+    //     break;
 
     default:
         break;

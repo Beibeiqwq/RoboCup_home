@@ -4,7 +4,7 @@
   <!-- wpb_home core-->
   <node pkg="wpb_home_bringup" type="wpb_home_core" name="wpb_home_core" output="screen">
     <param name="serial_port" type="string" value="/dev/ftdi"/> 
-    <rosparam file=" $(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
+    <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
   </node>
 
   <!--- Run Rplidar -->
@@ -59,7 +59,7 @@
 
   <!-- Map tools  -->
   <node pkg="waterplus_map_tools" type="wp_manager" name="wp_manager" output="screen">
-    <param name="load" type="string" value="/home/bei/waypoints.xml"/> 
+    <param name="load" type="string" value="/home/robot/waypoints.xml"/> 
   </node>
   
   <!-- WP_navi_server  -->

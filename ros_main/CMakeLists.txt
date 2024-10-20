@@ -45,12 +45,13 @@ add_dependencies(entrance_detect ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 target_link_libraries(entrance_detect
   ${catkin_LIBRARIES}
 )
-add_executable(main
-  src/main.cpp
+add_executable(main2
+  src/main2.cpp
   src/Robot_Act/RobotAct.cpp
 )
-add_dependencies(main ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(main
+add_dependencies(main2 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(main2
   ${catkin_LIBRARIES}
 )
 

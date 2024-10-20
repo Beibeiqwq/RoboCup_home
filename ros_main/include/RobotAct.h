@@ -98,7 +98,7 @@ public:
 	void Exit();
 	void AddNewWaypoint(string);
 	void AddNewWaypoint_yolo(string inStr);
-	
+	string coord_dustbin;
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);

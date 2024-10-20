@@ -119,21 +119,21 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
             }
-            else
-            {
-                Robot._bFixView = true;
-                if (Robot._bFixView_ok == true)
-                {
-                    //Robot.ActionDetect();
-                    stAct newAct;
-                    newAct.nAct = ACT_ACTION_DETECT;  //未定义？
-                    newAct.strTarget = "ACTION_DETECT";
-                    Robot.arAct.push_back(newAct);
-                    Robot._bFixView_ok = false;
-                }
-                Robot.nPeopleCount++;
-                TimerAct = TimerAct_FIND_OBJ;
-            }
+            // else
+            // {
+            //     Robot._bFixView = true;
+            //     if (Robot._bFixView_ok == true)
+            //     {
+            //         //Robot.ActionDetect();
+            //         stAct newAct;
+            //         newAct.nAct = ACT_ACTION_DETECT;  //未定义？
+            //         newAct.strTarget = "ACTION_DETECT";
+            //         Robot.arAct.push_back(newAct);
+            //         Robot._bFixView_ok = false;
+            //     }
+            //     Robot.nPeopleCount++;
+            //     TimerAct = TimerAct_FIND_OBJ;
+            // }
         }
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ)
@@ -206,6 +206,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "main");
     ros::NodeHandle nh;
+    ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect",10,&EntranceCB);
     Init_keywords();
     Robot.Init();
     ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
@@ -227,9 +228,9 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
-            Robot.Main();
-            nState = STATE_WAIT_CMD;
-            Robot.Reset();
+            bool main_finish = Robot.Main();
+            //nState = STATE_WAIT_CMD;
+            //Robot.Reset();
         }
 
         if (nState == STATE_GOTO_EXIT)
@@ -244,3 +245,37 @@ int main(int argc, char** argv)
     }
     return 0; 
 }
+
+//伪函数
+// void VoiceCB(msg)
+// {
+//     string strListen;
+//     strListen = findWord(msg,robot.arkHELLO)
+//     if(strListen.lenth() >0 )
+//     {
+//         arAct newAct;
+//         newAct.target = ACT_RECORD;
+//         robot.aract.push_back(newAct);
+//         bAction = true;
+//     }
+//     strListen = findword(msg,robot.arkOBj)
+//     if(strListen.lengh()>0)
+//     {
+//         arAct newACt;
+//         nweACt.target = obj;
+//         robot.aract.push_back(newAct);
+//         bCheck = true
+//     }
+
+//     if(bcheck == true)
+//     {
+//         robot.speak(strListen)
+//         robot.spaek(确定)
+//         if(确定 == false)
+//         robot.reset();
+//         else
+//         nState = STATE_ACTION
+
+//     }
+    
+// }
