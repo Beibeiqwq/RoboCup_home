@@ -4,7 +4,7 @@
   <!-- wpb_home core-->
   <node pkg="wpb_home_bringup" type="wpb_home_core" name="wpb_home_core" output="screen">
     <param name="serial_port" type="string" value="/dev/ftdi"/> 
-    <rosparam file=" $(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
+    <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
   </node>
 
   <!--- Run Rplidar -->
@@ -65,6 +65,6 @@
   <!-- WP_navi_server  -->
   <node pkg="waterplus_map_tools" type="wp_navi_server" name="wp_navi_server" output="screen"/>
   <!-- 启动检测是否开门节点 -->
-  <node name="robot_is_entrance" pkg="ros_main" type="robot_is_entrance"/>
+  <node name="entrance_detect" pkg="ros_main" type="entrance_detect"/>
 
 </launch>

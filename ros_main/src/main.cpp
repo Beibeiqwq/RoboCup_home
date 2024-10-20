@@ -114,6 +114,7 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if (!Robot.bPeopleFound)
             {
+                cout << "未找到人" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
@@ -206,6 +207,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "main");
     ros::NodeHandle nh;
+    ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect",10,&EntranceCB);
     Init_keywords();
     Robot.Init();
     ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);

@@ -94,7 +94,9 @@ void callbackBbox(const wpb_yolo5::BBox2D &msg)
 
 void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 {
-    ROS_INFO("进入点云回调函数");
+    //ROS_INFO("进入点云回调函数");
+    flag_predicted = false;
+
     std::vector<stObjectBox> arObject = objects;
     if (arObject.size() <= 0) 
     {
@@ -332,6 +334,8 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
     //marker_pub.publish(line_box);
     coord_pub.publish(coord);
     objects.clear();
+
+    flag_predicted = true;
 }
 //传入的数据框出识别对象
 void DrawBox(float inMinX, float inMaxX, float inMinY, float inMaxY, float inMinZ, float inMaxZ, float inR, float inG, float inB)

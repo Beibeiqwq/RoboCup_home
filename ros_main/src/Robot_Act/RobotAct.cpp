@@ -124,7 +124,7 @@ bool RobotAct::Main()
     {
         return false;
     }
-    // 语音识别的关键词
+    // 语音识别的关键词 
     int nKeyWord = -1;
     // 当前任务状态
     nCurActCode = arAct[nCurActIndex].nAct;
