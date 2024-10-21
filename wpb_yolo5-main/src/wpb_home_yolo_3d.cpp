@@ -63,14 +63,14 @@ void callbackColorImage(const sensor_msgs::ImageConstPtr& msg)
     if(flag_predicted == false)
         return;
     
-    ROS_INFO("[wpb_home_yolo_3d] 发送一帧图像给 yolo5_node");
+    //ROS_INFO("[wpb_home_yolo_3d] 发送一帧图像给 yolo5_node");
     predict_pub.publish(msg); 
     //flag_predicted = false;
 }
 
 void callbackBbox(const wpb_yolo5::BBox2D &msg)
 {
-    ROS_INFO("[wpb_home_yolo_3d] 接收到 yolo5_node 识别结果");
+    //ROS_INFO("[wpb_home_yolo_3d] 接收到 yolo5_node 识别结果");
     objects.clear();
     int nNum = msg.name.size();
     if(nNum > 0)

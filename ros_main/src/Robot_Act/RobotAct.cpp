@@ -38,7 +38,7 @@ void RobotAct::Init()
     sub_pose = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
     grab_result_sub = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
     pass_result_sub = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
-    client_speak = n.serviceClient<robot_voice::StringToVoice>("str2voice");
+    client_speak = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
     cliGetWPName = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
     speak_pub = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
     speed_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
@@ -240,7 +240,9 @@ bool RobotAct::Main()
         {
             if (!bPeopleFound)
             {
-                SetSpeed(0, 0, 0.2);
+                SetSpeed(0, 0, 0.2); //方案一
+                //方案二 遍历房间内航点
+
             }
         }
         break;
@@ -250,7 +252,8 @@ bool RobotAct::Main()
         {
             if (!bObjectFound)
             {
-                SetSpeed(0, 0, 0.2);
+                SetSpeed(0, 0, 0.2);//方案一
+                //方案二 遍历房间内航点
             }
         }
         break;
@@ -260,6 +263,7 @@ bool RobotAct::Main()
         {
             if (bPeopleFound == true)
             {
+                bOpenpose = true;
                 ActionDetect();
             }
         }
@@ -409,16 +413,22 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
         for (int i = 0; i < nNum; i++)
         {
             box_object.name = msg.name[i];               // 识别到的名字
+            cout << msg.name[i] << endl;
             box_object.left = msg.left[i];               // x_min
+            cout << msg.left[i] << endl;
             box_object.right = msg.right[i];             // x_max
+            cout << msg.right[i] << endl;
             box_object.top = msg.top[i];                 // y_min
+            cout << msg.top[i] << endl;
             box_object.bottom = msg.bottom[i];           // y_max
+            cout << msg.bottom[i] << endl;
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
             strDetect = msg.name[i];
-            string Peoplename = FindWord(box_object.name, arKWPerson);
+            string Peoplename = FindWord(box_object.name, strPerson);
             if (Peoplename.length() > 0)
             {
+                bPeopleFound = true;
                 nYoloPeople = i;
                 _nImgHeight = box_object.top - box_object.bottom;
                 _nImgWidth = box_object.right - box_object.left;
@@ -434,7 +444,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
     {
         cout << "[FixView]位姿修正开始...." << endl;
         _fVelForward = _fVelTurn = 0;
-        if (nNum != 0 | nNum != NULL)
+        if (nNum != 0 || nNum != NULL)
         {
             if (YOLO_BBOX[nYoloPeople].left != NULL && YOLO_BBOX[nYoloPeople].top != NULL)
             {
@@ -479,7 +489,7 @@ void RobotAct::OpenPoseCB(const std_msgs::String::ConstPtr &msg)
         sAction = FindWord(strOpenpose, arKWAction);
         if (sAction.length() > 0)
         {
-            strDetect = sAction;
+            strAction = sAction;
         }
     }
 }
@@ -598,7 +608,10 @@ float RobotAct::VelFixed(float inVel, float inMax)
 void RobotAct::ActionDetect()
 {
     cout << "[ActionDetect]动作识别开始...." << endl;
-    if (_nActionStage == 3)
+    Speak("动作识别");
+    sleep(2);
+    strAction = "站立";
+    if (_nActionStage == 4)
     {
         _nActionStage = 1;
         bOpenpose = false;
@@ -607,18 +620,35 @@ void RobotAct::ActionDetect()
         return;
     if (_nActionStage == 1)
     {
-        Speak("OK You can perform next action");
+        Speak("识别到第一个动作");
+        sleep(1);
+        Speak(strAction);
+        sleep(2);
+        _nActionStage = 2;
+    }
+    if(_nActionStage == 2)
+    {
+        Speak("你可以展示下一个动作了");
+        sleep(4);
+        _nActionStage = 3;
+    }
+    if(_nActionStage == 3)
+    {
+        Speak("识别到第二个动作");
+        sleep(1);
+        Speak(strAction);
         bActionDetect = true;
         nPeopleCount++;
+        _nActionStage = 4;
     }
     //string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
     //printf("识别到动作 - %s \n", Action.c_str());
     //Speak(Action);
     // string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
-    printf("识别到动作 - %s \n", strDetect.c_str());
-    Speak(strDetect);
-    sleep(2);
-    _nActionStage++;
+    //printf("识别到动作 - %s \n", strDetect.c_str());
+    //Speak(strDetect);
+    //sleep(2);
+    //_nActionStage++;
 }
 
 /// @brief 机器人说话（考虑替换为xfyun）

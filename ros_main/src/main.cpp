@@ -73,6 +73,10 @@ void Init_keywords()
     Robot.arKWAction.push_back("shake both hands");
     Robot.arKWAction.push_back("smoking");
 
+    Robot.strPerson.push_back("Person");
+    Robot.strPerson.push_back("person");
+    Robot.strPerson.push_back("People");
+    Robot.strPerson.push_back("people");
     cout << "[Init]关键词初始化完成！" << endl;
 }
 
@@ -121,12 +125,13 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
-                //bAction = true;
+                bAction = true;
             }
             else
             {
                 cout << "[test]找到人了" << endl;
                 //Robot._bFixView = true;
+                Robot._bFixView_ok = true;
                 if (Robot._bFixView_ok == true) //回调函数中视角修正
                 {
                     cout << "[test]动作识别 " << endl;
@@ -155,7 +160,7 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_FIND_OBJ;
                 newAct.strTarget = "FIND_OBJ";
                 Robot.arAct.push_back(newAct);
-                bAction = true;
+                //bAction = true;
             }
             else
             {
@@ -167,9 +172,10 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 TimerAct = TimerAct_GOTO_DUSTBIN;
             }
+            bAction = true;
         }
 
-        if (TimerAct == TimerAct_GOTO_DUSTBIN)
+        if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.bGrabDone == true)
         {
             if(Robot.bGrabDone == true)
             {
@@ -185,9 +191,10 @@ void MainCallback(const ros::TimerEvent &e)
                 //TimerAct = TimcerAct_FIND_OBJ;
                 cout <<"等待抓取结束 " << endl;
             }
+            bAction =true;
         }
 
-        if(TimerAct == TimerAct_PASS)
+        if(TimerAct == TimerAct_PASS && Robot.bArrive == true && Robot.bGrabDone == true)
         {
             if(Robot.bGrabDone == true && Robot.bPassDone != true)
             {
@@ -235,8 +242,8 @@ int main(int argc, char** argv)
             if (nOpenCount > 20)
             {
                 Robot.Enter();
-                Robot.Speak("我已经进入场地了");
-                sleep(3);
+                Robot.Speak("我已进入场地");
+                sleep(1);
                 nState = STATE_WAIT_CMD;
             }
         }
@@ -246,9 +253,15 @@ int main(int argc, char** argv)
             bMainFinish = Robot.Main();
             if(bMainFinish == false)
             {
+                cout << "bMainFinish == false" << endl;
                 nState = STATE_WAIT_CMD;
                 Robot.Reset();
             }
+
+            // if(bMainFinish == true)
+            // {
+            //     cout << "bMainFinish == true" << endl;
+            // }
         }
 
         if (nState == STATE_GOTO_EXIT)

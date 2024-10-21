@@ -69,6 +69,7 @@ public:
 	vector<string> arKWObject;	  // 物品
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
+	vector<string> strPerson;     // YOLO人识别
 	/*--------------功能类---------------*/
     vector<stAct> arAct; 
 	int nCurActIndex;
@@ -95,6 +96,7 @@ public:
 	void ActionDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	string strDetect;		   // 物品识别
+	string strAction;          // 动作识别
 	/*--------------语音类---------------*/
 	std::string strListen;
 	void Speak(const std::string &answer_txt);
@@ -138,7 +140,7 @@ private:
 	string _coord_exit; 	   //出门坐标
 	string _name_yaml;         //配置文件
 
-	int _nActionStage = 0;	   // 动作计数
+	int _nActionStage = 1;	   // 动作计数
 
 	int nYoloPeople = -1;	   // 人物编号
 
