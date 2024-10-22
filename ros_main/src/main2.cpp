@@ -126,12 +126,14 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 TimerAct = TimerAct_CONTACT;
             }
-            else 
-            {
-                Timer = TimerAct_CONTACT;
-            }
+            
         }
 
+
+        if (TimerAct ==TimerAct_CONTACT)
+        {
+            
+        }
 
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ)

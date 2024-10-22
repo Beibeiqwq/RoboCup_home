@@ -220,6 +220,13 @@ bool RobotAct::Main()
             
         }
         break;
+    
+    case ACT_CONTACT:
+        if (nLastActCode != ACT_CONTACT)
+        {
+            
+        }
+
 
     case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)

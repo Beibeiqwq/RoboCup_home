@@ -6,8 +6,8 @@ using namespace std;
 #define ACT_GOTO			1			//前往
 #define ACT_GRAB			2			//抓取
 #define ACT_PASS			3			//放开
-#define ACT_SPEAK			4			//说
-#define ACT_LISTEN			5			//听
+#define ACT_CONTACT			4			//交流
+
 #define ACT_MOVE			6			//移动
 #define ACT_ADD_WAYPOINT	7			//添加航点
 #define ACT_FIND_OBJ        8			//物体识别
