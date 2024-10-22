@@ -31,19 +31,19 @@ void RobotAct::Init()
     n.param<string>("place4", arKWPlacement[4], "dining room");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
-    n.param<float>("PID_Forward", _PID_Forward, 0.002);
-    n.param<float>("PID_Turn", _PID_Turn, 0.003);
+    n.param<float>("PID_Forward", _PID_Forward, 0.0002);
+    n.param<float>("PID_Turn", _PID_Turn, 0.0003);
     /*---------------ROS初始化---------------*/
-    sub_yolo = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5CB, this);
-    sub_pose = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
-    grab_result_sub = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
-    pass_result_sub = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
-    client_speak = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
-    cliGetWPName = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
-    speak_pub = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
-    speed_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
-    yolo_pub = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
-    behaviors_pub = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
+    sub_yolo         = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5CB, this);
+    sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
+    grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
+    pass_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
+    client_speak     = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
+    cliGetWPName     = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
+    speak_pub        = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
+    speed_pub        = n.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
+    yolo_pub         = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
+    behaviors_pub    = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
@@ -252,6 +252,8 @@ bool RobotAct::Main()
         {
             if (!bObjectFound)
             {
+                Speak("找不到物品");
+                cout << "!OBJECT_FOUND!!!!!" << endl;
                 SetSpeed(0, 0, 0.2);//方案一
                 //方案二 遍历房间内航点
             }
@@ -413,27 +415,28 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
         for (int i = 0; i < nNum; i++)
         {
             box_object.name = msg.name[i];               // 识别到的名字
-            cout << msg.name[i] << endl;
             box_object.left = msg.left[i];               // x_min
-            cout << msg.left[i] << endl;
+            cout << "left:" << msg.left[i] << endl;
             box_object.right = msg.right[i];             // x_max
-            cout << msg.right[i] << endl;
+            cout << "right" << msg.right[i] << endl;
             box_object.top = msg.top[i];                 // y_min
-            cout << msg.top[i] << endl;
+            //cout << "top" << msg.top[i] << endl;
             box_object.bottom = msg.bottom[i];           // y_max
-            cout << msg.bottom[i] << endl;
+            //cout << "bottom" << msg.bottom[i] << endl;
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, strPerson);
+            //Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
             {
+                cout << "进入if Peoplename.length()>0" << endl;
                 bPeopleFound = true;
                 nYoloPeople = i;
                 _nImgHeight = box_object.top - box_object.bottom;
                 _nImgWidth = box_object.right - box_object.left;
-                _nTargetX = 128;
-                _nTargetY = 128;
+                _nTargetX = 1024;
+                _nTargetY = 540;
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -444,28 +447,38 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
     {
         cout << "[FixView]位姿修正开始...." << endl;
         _fVelForward = _fVelTurn = 0;
-        if (nNum != 0 || nNum != NULL)
+        if (nNum != 0)
         {
-            if (YOLO_BBOX[nYoloPeople].left != NULL && YOLO_BBOX[nYoloPeople].top != NULL)
+            cout << "进入nNum ==0 "<< endl;
+            if (YOLO_BBOX[nYoloPeople].left != 0 && YOLO_BBOX[nYoloPeople].top != 0)
             {
                 cout << "标定位置信息为:" << "x:" << YOLO_BBOX[nYoloPeople].left << "y:" << YOLO_BBOX[nYoloPeople].top << endl;
-                if (YOLO_BBOX[nYoloPeople].left < 128)
+                if(YOLO_BBOX[nYoloPeople].left >= 700 && YOLO_BBOX[nYoloPeople].right <= 1400)
+                {
+                    _fVelForward = _fVelForward = 0;
+                    SetSpeed(VelFixed(_fVelForward, _vel_max), 0, VelFixed(_fVelTurn, _vel_max));
+                    _bFixView_ok = true;
+                    _bFixView = false;
+                }
+                
+                
+                if (YOLO_BBOX[nYoloPeople].left < 700)
                 {
                     // fVelForward = (nImgHeight / 2 - nTargetY) * PID_Forward;
                     _fVelTurn = (_nImgWidth / 2 - _nTargetY) * _PID_Turn;
                 }
-                else if (YOLO_BBOX[nYoloPeople].left > 128)
+                else if (YOLO_BBOX[nYoloPeople].left > 1400)
                 {
                     _fVelTurn = (_nImgWidth / 2 - _nTargetY) * _PID_Turn;
                 }
-                else if (YOLO_BBOX[nYoloPeople].top < 128)
-                {
-                    _fVelForward = (_nImgHeight / 2 - _nTargetY) * _PID_Forward;
-                }
-                else if (YOLO_BBOX[nYoloPeople].top > 128)
-                {
-                    _fVelForward = (_nImgHeight / 2 - _nTargetY) * _PID_Forward;
-                }
+                // else if (YOLO_BBOX[nYoloPeople].top < 540)
+                // {
+                //     _fVelForward = (_nImgHeight / 2 - _nTargetY) * _PID_Forward;
+                // }
+                // else if (YOLO_BBOX[nYoloPeople].top > 540)
+                // {
+                //     _fVelForward = (_nImgHeight / 2 - _nTargetY) * _PID_Forward;
+                // }
                 else
                 {
                     _fVelForward = _fVelForward = 0;
@@ -608,7 +621,7 @@ float RobotAct::VelFixed(float inVel, float inMax)
 void RobotAct::ActionDetect()
 {
     cout << "[ActionDetect]动作识别开始...." << endl;
-    Speak("动作识别");
+    Speak("动作识别开始");
     sleep(2);
     strAction = "站立";
     if (_nActionStage == 4)
@@ -641,14 +654,6 @@ void RobotAct::ActionDetect()
         nPeopleCount++;
         _nActionStage = 4;
     }
-    //string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
-    //printf("识别到动作 - %s \n", Action.c_str());
-    //Speak(Action);
-    // string Action = FindWord_Yolo(YOLO_BBOX, arKWAction);
-    //printf("识别到动作 - %s \n", strDetect.c_str());
-    //Speak(strDetect);
-    //sleep(2);
-    //_nActionStage++;
 }
 
 /// @brief 机器人说话（考虑替换为xfyun）
@@ -661,11 +666,12 @@ void RobotAct::Speak(const std::string &answer_txt)
     bool ok = client_speak.call(req, resp);
     if (ok)
     {
-        printf("[Speak]send str2voice service success: %s", req.data.c_str());
+        //printf("[Speak]send str2voice service success: %s", req.data.c_str());
+        cout << "[RobotAct]发送语音任务到 'str2voice' " << req.data << endl;
     }
     else
     {
-        ROS_ERROR("[Speak]failed to send str2voice service");
+        ROS_ERROR("[RobotAct]启动服务失败");
     }
 }
 

@@ -15,6 +15,7 @@ import os
 import math
 from torch import nn
 from torch.autograd import Variable
+from std_msgs.msg import String
 
 #站立、躺、坐、平坐、行走、蹲起、俯卧撑、摔倒、
 #倚靠墙壁、吸烟、打电话、挥手、举手、挥双手
@@ -80,7 +81,8 @@ class rosOpenPose:
     def __init__(self, frame_id, no_depth, pub_topic, color_topic, depth_topic, cam_info_topic, op_wrapper, display):
 
         self.pub = rospy.Publisher(pub_topic, Frame, queue_size=10)
-
+        self.msg_pub = rospy.Publisher("Openpose",String,queue_size=10)
+        msg = String()
         self.frame_id = frame_id
         self.no_depth = no_depth
 
@@ -242,7 +244,7 @@ class rosOpenPose:
                 try:
                     PoseResult = pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))]
                     print(PoseResult)
-                
+                    str = PoseResult
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -323,6 +325,7 @@ class rosOpenPose:
         except Exception as e:
             print(f"An error occurred: {e}")
         self.pub.publish(fr)#poseresult
+        self.msg_pub.publish(str)
 
 def main():
     frame_id = rospy.get_param("~frame_id")

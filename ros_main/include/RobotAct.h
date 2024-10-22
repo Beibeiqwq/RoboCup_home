@@ -95,8 +95,8 @@ public:
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
-	string strDetect;		   // 物品识别
-	string strAction;          // 动作识别
+	string strDetect;		   // YOLO物品识别
+	string strAction;          // POSE动作识别
 	/*--------------语音类---------------*/
 	std::string strListen;
 	void Speak(const std::string &answer_txt);

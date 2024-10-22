@@ -178,5 +178,12 @@
   />
   <!-- openpose节点 -->
   
+  <!-- 抓取服务 -->
+   <node pkg="wpb_home_behaviors" type="wpb_home_grab_server" name="wpb_home_grab_server">
+    <param name="start" type="bool" value="false"/> 
+    <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
+  </node>
+  <!-- 递给服务 -->
+  <node pkg="wpb_home_behaviors" type="wpb_home_pass_server" name="wpb_home_pass_server"/>
 
 </launch>
