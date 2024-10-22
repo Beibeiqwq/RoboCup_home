@@ -224,7 +224,14 @@ bool RobotAct::Main()
     case ACT_CONTACT:
         if (nLastActCode != ACT_CONTACT)
         {
-            
+            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+            strToSpeak = arAct[nCurActIndex].strTarget;
+            std_msgs::String rosSpeak;
+            rosSpeak.data = strToSpeak;
+            speak_pub.publish(rosSpeak);
+            strToSpeak = "";
+            usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
+            nCurActIndex++;
         }
 
 
