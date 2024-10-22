@@ -25,10 +25,10 @@ void RobotAct::Init()
     /*---------------参数导入区---------------*/
     n.param<string>("name", _name_yaml, "default");
     n.param<string>("enter", _coord_cmd, "cmd");
-    n.param<string>("place1", arKWPlacement[1], "living room");
-    n.param<string>("place2", arKWPlacement[2], "kitchen");
+    n.param<string>("place1", arKWPlacement[1], "dining room");
+    n.param<string>("place2", arKWPlacement[2], "living room");
     n.param<string>("place3", arKWPlacement[3], "bedroom");
-    n.param<string>("place4", arKWPlacement[4], "dining room");
+    n.param<string>("place4", arKWPlacement[4], "kitchen");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float>("PID_Forward", _PID_Forward, 0.002);
@@ -211,16 +211,15 @@ bool RobotAct::Main()
         if (nLastActCode != ACT_FIND_PERSON)
         {
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
-            for (int i = 0; i < 3; i++)
-            AddNewWaypoint_yolo(YOLO_BBOX_3D[i]);
-
+            for (int i = 0; i < nPeopleCount; i++)
+            {
+                AddNewWaypoint_yolo(YOLO_BBOX_3D[i].name);
+                arKWPlacement.emplace(arKWPlacement.end(), str(YOLO_BBOX_3D[i].name));
+            }
+            
+            
         }
-
-    case ACT_ADD_WAYPOINT:
-        if(nLastActCode != ACT_ADD_WAYPOINT)
-        {
-
-        }
+        break;
 
     case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)

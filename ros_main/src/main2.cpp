@@ -3,15 +3,15 @@
 /*---------------状态机区---------------*/
 #define STATE_READY               0
 #define STATE_WAIT_ENTR           1
-#define STATE_WAIT_CMD            2                 //等待指令
+#define STATE_WAIT_CMD            2                 // 等待指令
 #define STATE_ACTION              3
 #define STATE_CONFIRM             4
-#define STATE_GOTO_EXIT           5
+#define STATE_GOTO_EXIT           5                 // 离开房间
 
-#define TimerAct_READY            6
-#define TimerAct_FIND_PERSON      7
-#define TimerAct_FIND_OBJ         8
-#define TimerAct_GOTO_DUSTBIN     9
+#define TimerAct_READY            6                 // 准备
+#define TimerAct_FIND_PERSON      7                 // 寻找人
+#define TimerAct_FIND_OBJ         8                 // 物品识别
+#define TimerAct_GOTO_DUSTBIN     9                 // 去垃圾桶
 #define TimerAct_PASS             10
 /*---------------初始化区---------------*/
 
@@ -102,11 +102,14 @@ void MainCallback(const ros::TimerEvent &e)
 
         if (TimerAct == TimerAct_READY)
         {
-            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[Robot.nPlaceCount] << endl;
+            cout << "[TaskPub]发布任务: 前往地点：" << Rgoobot.arKWPlacement[Robot.nPlaceCount] << endl;
             stAct newAct;
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
-            Robot.arAct.push_back(newAct);
+            if (nPeopleCount != 3)
+            {
+                TimerAct = TimerAct_READY;
+            }
             TimerAct = TimerAct_FIND_PERSON;
         }
 
@@ -119,22 +122,10 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
             }
-            // else
-            // {
-            //     Robot._bFixView = true;
-            //     if (Robot._bFixView_ok == true)
-            //     {
-            //         //Robot.ActionDetect();
-            //         stAct newAct;
-            //         newAct.nAct = ACT_ACTION_DETECT;  //未定义？
-            //         newAct.strTarget = "ACTION_DETECT";
-            //         Robot.arAct.push_back(newAct);
-            //         Robot._bFixView_ok = false;
-            //     }
-            //     Robot.nPeopleCount++;
-            //     TimerAct = TimerAct_FIND_OBJ;
-            // }
+
         }
+
+
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ)
         {

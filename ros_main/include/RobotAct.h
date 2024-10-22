@@ -99,7 +99,7 @@ public:
 	void AddNewWaypoint(string);
 	void AddNewWaypoint_yolo(string inStr);
 	string coord_dustbin;                                  	//垃圾桶名字
-	bool bArrive = false;
+	bool bArrive = false;	   // 到达标志位
 	/*--------------速度控制--------------*/
 	float VelFixed(float,float);
 	void SetSpeed(float,float,float);
@@ -131,9 +131,11 @@ public:
 	/*--------------任务类---------------*/
 	int nPeopleCount = 0;	   // 人物计数
 	int nLitterCount = 0;	   // 垃圾计数
-	int nPlaceCount  = 1;	   // 地点计数
+	int nPlaceCount  = 1;	   // 房间计数
+	int n
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
+	
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher speak_pub;
@@ -167,8 +169,8 @@ private:
 	float _fVelTurn = 0;	   // 修正转向速度
 	float _PID_Forward = 0;	   // 修正前进PID系数
 	float _PID_Turn = 0;	   // 修正转向PID系数
-
-	//bool bArrive = false;	   // 到达标志位
+	
+	
 
 	bool bOpenpose = false;	   // 动作识别
 	/*---------------数组/容器区---------------*/
@@ -178,7 +180,7 @@ private:
 	std::vector<BBox2D> recv_BBOX;
 	std::vector<BBox3D> recv_BBOX_3D;
 	std::list<stAct>::iterator ARACT_IT = arAct.begin();
-
+	std::vector<vector>::iterator Placement_IT = arKWPlacement.begin();
 };
 
 #endif 
