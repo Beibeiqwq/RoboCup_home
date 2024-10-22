@@ -13,6 +13,8 @@
 #define TimerAct_FIND_OBJ         8                 // 物品识别
 #define TimerAct_GOTO_DUSTBIN     9                 // 去垃圾桶
 #define TimerAct_PASS             10
+#define TimerAct_GOTO_PEOPLE      11                // 去人航点 
+#define TimerAct_CONTACT          12                // 交流
 /*---------------初始化区---------------*/
 
 
@@ -106,7 +108,8 @@ void MainCallback(const ros::TimerEvent &e)
             stAct newAct;
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
-            if (nPeopleCount != 3)
+            Robot.arAct.push_back(newAct);
+            if (Robot.nPeopleCount != 3)
             {
                 TimerAct = TimerAct_READY;
             }
@@ -121,8 +124,12 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
+                TimerAct = TimerAct_CONTACT;
             }
-
+            else 
+            {
+                Timer = TimerAct_CONTACT;
+            }
         }
 
 
