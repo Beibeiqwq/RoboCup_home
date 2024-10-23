@@ -211,29 +211,32 @@ bool RobotAct::Main()
     case ACT_FIND_PERSON:
         if (nLastActCode != ACT_FIND_PERSON)
         {
+            std::advance(ARACT_IT, nCurActIndex);
+            string StrGoto = ARACT_IT->strTarget;
+            std::advance(ARACT_IT, -nCurActIndex);
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             for (int i = 0; i < nPeopleCount; i++)
             {
                 AddNewWaypoint_yolo(YOLO_BBOX_3D[i].name);
-                arKWPlacement.emplace(arKWPlacement.end(), str(YOLO_BBOX_3D[i].name));
+                arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
             }
             
             
         }
         break;
     
-    case ACT_CONTACT:
-        if (nLastActCode != ACT_CONTACT)
-        {
-            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            strToSpeak = arAct[nCurActIndex].strTarget;
-            std_msgs::String rosSpeak;
-            rosSpeak.data = strToSpeak;
-            speak_pub.publish(rosSpeak);
-            strToSpeak = "";
-            usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
-            nCurActIndex++;
-        }
+    // case ACT_CONTACT:
+    //     if (nLastActCode != ACT_CONTACT)
+    //     {
+    //         printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+    //         strToSpeak = arAct[nCurActIndex].strTarget;
+    //         std_msgs::String rosSpeak;
+    //         rosSpeak.data = strToSpeak;
+    //         speak_pub.publish(rosSpeak);
+    //         strToSpeak = "";
+    //         usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
+    //         nCurActIndex++;
+    //     }
 
 
     case ACT_GRAB:
@@ -270,21 +273,21 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_SPEAK:
-        if (nLastActCode != ACT_SPEAK)
-        {
-            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            strToSpeak = ARACT_IT->strTarget;
-            std_msgs::String rosSpeak;
-            rosSpeak.data = strToSpeak;
-            speak_pub.publish(rosSpeak);
-            strToSpeak = "";
-            usleep(ARACT_IT->nDuration * 1000 * 1000);
-            std::advance(ARACT_IT, -nCurActIndex);
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
-        }
-        break;
+    // case ACT_SPEAK:
+    //     if (nLastActCode != ACT_SPEAK)
+    //     {
+    //         printf("[RobotAct] %d - Speak %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         strToSpeak = ARACT_IT->strTarget;
+    //         std_msgs::String rosSpeak;
+    //         rosSpeak.data = strToSpeak;
+    //         speak_pub.publish(rosSpeak);
+    //         strToSpeak = "";
+    //         usleep(ARACT_IT->nDuration * 1000 * 1000);
+    //         std::advance(ARACT_IT, -nCurActIndex);
+    //         nCurActIndex++;
+    //         std::advance(ARACT_IT, nCurActIndex);
+    //     }
+    //     break;
 
         // case ACT_LISTEN:
         //     if (nLastActCode != ACT_LISTEN)
@@ -312,21 +315,21 @@ bool RobotAct::Main()
         //     }
         //     break;
 
-    case ACT_MOVE:
-        printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, ARACT_IT->fLinear_x, ARACT_IT->fLinear_y, ARACT_IT->fAngular_z);
-        vel_cmd.linear.x = ARACT_IT->fLinear_x;
-        vel_cmd.linear.y = ARACT_IT->fLinear_y;
-        vel_cmd.linear.z = 0;
-        vel_cmd.angular.x = 0;
-        vel_cmd.angular.y = 0;
-        vel_cmd.angular.z = ARACT_IT->fAngular_z;
-        speed_pub.publish(vel_cmd);
+    // case ACT_MOVE:
+    //     printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, ARACT_IT->fLinear_x, ARACT_IT->fLinear_y, ARACT_IT->fAngular_z);
+    //     vel_cmd.linear.x = ARACT_IT->fLinear_x;
+    //     vel_cmd.linear.y = ARACT_IT->fLinear_y;
+    //     vel_cmd.linear.z = 0;
+    //     vel_cmd.angular.x = 0;
+    //     vel_cmd.angular.y = 0;
+    //     vel_cmd.angular.z = ARACT_IT->fAngular_z;
+    //     speed_pub.publish(vel_cmd);
 
-        usleep(ARACT_IT->nDuration * 1000 * 1000);
-        std::advance(ARACT_IT, -nCurActIndex);
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
-        break;
+    //     usleep(ARACT_IT->nDuration * 1000 * 1000);
+    //     std::advance(ARACT_IT, -nCurActIndex);
+    //         nCurActIndex++;
+    //         std::advance(ARACT_IT, nCurActIndex);
+    //     break;
 
     // case ACT_ADD_WAYPOINT:
     //     if (nLastActCode != ACT_ADD_WAYPOINT)
@@ -385,11 +388,11 @@ string ActionText(stAct *inAct)
         ActText = "把物品递给 ";
         ActText += inAct->strTarget;
     }
-    if (inAct->nAct == ACT_SPEAK)
-    {
-        ActText = "说话 ";
-        ActText += inAct->strTarget;
-    }
+    // if (inAct->nAct == ACT_SPEAK)
+    // {
+    //     ActText = "说话 ";
+    //     ActText += inAct->strTarget;
+    // }
     if (inAct->nAct == ACT_MOVE)
     {
         ActText = "移动 ( ";
