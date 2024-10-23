@@ -45,7 +45,7 @@ void RobotAct::Init()
     yolo_pub = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
-    
+    tf_point_sub = n.subscribe<depth_yolo::tfpoint>("/depth_yolo/tfpoint_topic",30, &YOLOV5CB_3D, this);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -461,7 +461,7 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
     speed_pub.publish(vel_cmd);
 }
 
-void RobotAct::YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg)
+void RobotAct::YOLOV5CB_3D(const depth_yolo::tfpoint_topic& msg)
 {
     cout << "[YOLOV5CB_3D]:接收到Yolov5数据" << endl;
     YOLO_BBOX_3D.clear();
@@ -473,13 +473,7 @@ void RobotAct::YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg)
         for (int i = 0; i < nNum; i++)
         {
             box_object.name = msg.name[i];
-            box_object.frame_id = msg.frame_id[i];
-            box_object.x_min  = msg.x_min[i];
-            box_object.x_max  = msg.x_max[i];
-            box_object.y_min  = msg.y_min[i];
-            box_object.y_max  = msg.y_max[i];
-            box_object.z_min  = msg.z_min[i];
-            box_object.z_max  = msg.z_max[i]; 
+            
             recv_BBOX_3D.push_back(box_object);
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);

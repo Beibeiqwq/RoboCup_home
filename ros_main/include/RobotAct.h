@@ -62,13 +62,10 @@ typedef struct BBox2D
 typedef struct BBox3D
 {
 	std::string name;
-	std::string frame_id;
-	float x_min;
-	float x_max;
-	float y_min;
-	float y_max;
-	float z_min;
-	float z_max;
+	float tx;
+	float ty;
+	float tz;
+	
 } BBox3D;
 
 

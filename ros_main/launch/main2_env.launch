@@ -66,11 +66,7 @@
   <node pkg="waterplus_map_tools" type="wp_navi_server" name="wp_navi_server" output="screen"/>
   <!-- 启动检测是否开门节点 -->
   <node name="entrance_detect" pkg="ros_main" type="entrance_detect"/>
-  <!-- 启动YOLOV5节点 -->
-  <node pkg="wpb_yolo5" type="yolo5_node.py" name="yolo5_node"/>
-  <node pkg="wpb_yolo5" type="wpb_home_yolo_3d" name="wpb_home_yolo_3d" output="screen">
-    <param name="start" type="bool" value="true"/> 
-  </node>
+
    <!--- Kinect深度相机 -->
     <arg name="base_name"         default="kinect2"/>
     <arg name="sensor"            default=""/>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <!-- Console launch prefix -->
+  <arg name="launch_prefix" default=""/>
+  <arg name="image" default="/kinect2/qhd/image_color" />
+
+  <param name="yolov5_path"       value="/home/robot/robot_ws/src/yolov5_ros/yolov5"/>
+  <param name="use_cpu"           value="false" />
+
+  <!-- Start yolov5 and ros wrapper -->
+  <node pkg="yolov5_ros" type="yolo_v5.py" name="yolov5_ros" output="screen" >
+    <param name="weight_path"       value="/home/robot/robot_ws/src/yolov5_ros/weights/yolov5s.pt"/>
+    <param name="image_topic"       value="/kinect2/qhd/image_color" />
+    <param name="pub_topic"         value="/yolov5/BoundingBoxes" />
+    <param name="camera_frame"       value="camera_color_frame"/>
+    <param name="conf"              value="0.3" />
+  </node>
+  <!-- Depth Combination -->
+  <node pkg="depth_yolo" type="depth_combination.py" name="depth_combination" />
+
+  <!-- Static TF -->
+  <node pkg="tf" type="static_transform_publisher" name="camera_link_to_kinect2_optical_frame"
+    args="0 0 0 -1.57 0 -1.57 /camera_link /kinect2_ir_optical_frame 100" />
+
+</launch>

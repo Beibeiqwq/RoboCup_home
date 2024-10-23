@@ -47,6 +47,7 @@ def yolov5_callback(data):
             #obj_tf.sendTransform((z, -x, -y),tf.transformations.quaternion_from_euler(0, 0, 0),rospy.Time.now(),i.Class+str(id),parent_frame)
             obj_tf.sendTransform((x, y, z),tf.transformations.quaternion_from_euler(0, -math.pi/2, math.pi/2),rospy.Time.now(),i.Class+str(id),parent_frame)
             tfpoint_msg = tfpoint()
+            tfpoint_msg.name = data.bounding_boxes.Class
             tfpoint_msg.tx = x
             tfpoint_msg.ty = y
             tfpoint_msg.tz = z
