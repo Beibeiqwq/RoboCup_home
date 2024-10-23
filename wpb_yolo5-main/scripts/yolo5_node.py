@@ -58,7 +58,8 @@ if __name__ == "__main__":
     rospy.init_node("yolo5_node")
     #改成自己的绝对路径
     #weights_path ='/home/robot/robot_ws/src/yolov5_ros/best_zjb4.pt'
-    weights_path ='/home/robot/robot_ws/src/yolov5_ros/weights/yolov5s.pt'
+    # weights_path ='/home/robot/robot_ws/src/yolov5_ros/weights/yolov5s.pt'
+    weights_path = 'media/bei/Beibeiovo/Workspace/YoloV5/best.pt'
     yolov5_path = '/home/robot/robot_ws/src/yolov5_ros/yolov5'
 
     rospy.logwarn('Weights : ' + weights_path)
