@@ -73,51 +73,6 @@ public:
     return resp.success;
   }
 
-  bool Goto(string inStr)
-{
-    string strGoto = inStr;
-    srvName.request.name = strGoto;
-    if (cliGetWPName.call(srvName))
-    {
-        string name = srvName.response.name;
-        float x = srvName.response.pose.position.x;
-        float y = srvName.response.pose.position.y;
-        ROS_INFO("Get_wp_name: name = %s (%.2f,%.2f)", strGoto.c_str(), x, y);
-
-        MoveBaseClient ac("move_base", true);
-        if (!ac.waitForServer(ros::Duration(5.0)))
-        {
-            ROS_INFO("The move_base action server is no running. action abort...");
-            return false;
-        }
-        else
-        {
-            move_base_msgs::MoveBaseGoal goal;
-            goal.target_pose.header.frame_id = "map";
-            goal.target_pose.header.stamp = ros::Time::now();
-            goal.target_pose.pose = srvName.response.pose;
-            ac.sendGoal(goal);
-            ac.waitForResult();
-            if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-            {
-                ROS_INFO("Arrived at %s!", strGoto.c_str());
-                ToDownstream("我已经到达指定地点了");
-                return true;
-            }
-            else
-            {
-                ROS_INFO("Failed to get to %s ...", strGoto.c_str());
-                return false;
-            }
-        }
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service GetWaypointByName");
-        return false;
-    }
-}
-
   void Start(ros::NodeHandle& nh) {
   	// 申明 human_chatter 服务，ChatterCallbback是回调函数
     chatter_server_ = nh.advertiseService("human_chatter", &RobotController::ChatterCallbback, this);
