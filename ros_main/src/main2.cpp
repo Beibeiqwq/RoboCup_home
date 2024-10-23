@@ -104,7 +104,7 @@ void MainCallback(const ros::TimerEvent &e)
 
         if (TimerAct == TimerAct_READY)
         {
-            cout << "[TaskPub]发布任务: 前往地点：" << Rgoobot.arKWPlacement[Robot.nPlaceCount] << endl;
+            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[Robot.nPlaceCount] << endl;
             stAct newAct;
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];

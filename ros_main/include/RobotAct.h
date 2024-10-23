@@ -132,7 +132,7 @@ public:
 	int nPeopleCount = 0;	   // 人物计数
 	int nLitterCount = 0;	   // 垃圾计数
 	int nPlaceCount  = 1;	   // 房间计数
-	// int n
+	//int n;
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
 	
@@ -180,7 +180,7 @@ private:
 	std::vector<BBox2D> recv_BBOX;
 	std::vector<BBox3D> recv_BBOX_3D;
 	std::list<stAct>::iterator ARACT_IT = arAct.begin();
-	std::vector<vector>::iterator Placement_IT = arKWPlacement.begin();
+	std::vector<string>::iterator Placement_IT = arKWPlacement.begin();
 };
 
 #endif 
