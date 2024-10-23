@@ -65,7 +65,8 @@ public:
     }
   }
 
-  int SpeechOnce() {
+  int SpeechOnce() 
+  {
     int ret;
     int i = 0;
     struct speech_rec iat;
@@ -99,7 +100,8 @@ public:
     return 0;
   }
 
-  static std::string get_voice_txt_() {
+  static std::string get_voice_txt_() 
+  {
     return voice_txt_;
   }
 

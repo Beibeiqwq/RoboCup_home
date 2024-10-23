@@ -45,6 +45,7 @@ void RobotAct::Init()
     yolo_pub = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
+    
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
