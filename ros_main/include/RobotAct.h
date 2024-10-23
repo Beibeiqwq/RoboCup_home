@@ -114,6 +114,7 @@ public:
 	string GetToSpeak();
 	string FindWord(string, vector<string> &arWord);
 	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord);
+	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
 	/*--------------动作类---------------*/
 	bool bGrabDone;
 	bool bPassDone;
@@ -135,6 +136,7 @@ public:
 	
 private:
 	/*--------------ROS定义区---------------*/
+	ros::ServiceServer chatter_server_;
 	ros::Publisher speak_pub;
 	ros::Publisher speed_pub;
 	ros::Publisher yolo_pub;
