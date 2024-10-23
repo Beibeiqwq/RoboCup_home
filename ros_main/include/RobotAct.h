@@ -99,6 +99,7 @@ public:
 	string strAction;          // POSE动作识别
 	/*--------------语音类---------------*/
 	std::string strListen;
+	bool bKeyVoice = false;
 	void Speak(const std::string &answer_txt);
 	string GetToSpeak();
 	string FindWord(string, vector<string> &arWord);

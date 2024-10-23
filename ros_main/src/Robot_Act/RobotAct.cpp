@@ -701,6 +701,8 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
 
 bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
 {
+    if(bKeyVoice == false)
+        return;
     printf("识别到: %s\n", req.data.c_str());
     std::string voice_txt = req.data;
     if (voice_txt.find("你好") != std::string::npos)
