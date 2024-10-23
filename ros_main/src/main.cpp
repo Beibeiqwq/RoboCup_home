@@ -258,7 +258,6 @@ int main(int argc, char** argv)
             bMainFinish = Robot.Main();
             if(bMainFinish == false)
             {
-                cout << "bMainFinish == false" << endl;
                 nState = STATE_WAIT_CMD;
                 Robot.Reset();
             }

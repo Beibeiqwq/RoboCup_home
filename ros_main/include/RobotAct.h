@@ -106,7 +106,7 @@ public:
 	/*--------------动作类---------------*/
 	bool bGrabDone;
 	bool bPassDone;
-	bool _bFixView = false;	   // 位姿修正
+	bool _bFixView    = false; // 位姿修正
 	bool _bFixView_ok = false; // 修正状态
 	ros::Subscriber grab_result_sub;
 	ros::Subscriber pass_result_sub;
@@ -142,18 +142,18 @@ private:
 
 	int _nActionStage = 1;	   // 动作计数
 
-	int nYoloPeople = -1;	   // 人物编号
+	int nYoloPeople   = -1;	   // 人物编号
 
-	int _nImgHeight = 0;	   // 画面中点纵坐标
-	int _nImgWidth = 0;		   // 画面中点横坐标
-	int _nTargetX = 0;		   // 目标人物纵坐标
-	int _nTargetY = 0;		   // 目标人物横坐标
+	int _nImgHeight   = 0;	   // 画面中点纵坐标
+	int _nImgWidth    = 0;	   // 画面中点横坐标
+	int _nTargetX     = 0;	   // 目标人物纵坐标
+	int _nTargetY     = 0;	   // 目标人物横坐标
 
-	float _vel_max = 0.5;	   // 移动限速
+	float _vel_max     = 0.5;  // 移动限速
 	float _fVelForward = 0;	   // 修正前进速度
-	float _fVelTurn = 0;	   // 修正转向速度
+	float _fVelTurn    = 0;	   // 修正转向速度
 	float _PID_Forward = 0;	   // 修正前进PID系数
-	float _PID_Turn = 0;	   // 修正转向PID系数
+	float _PID_Turn    = 0;	   // 修正转向PID系数
 
 
 	bool bOpenpose = false;	   // 动作识别
