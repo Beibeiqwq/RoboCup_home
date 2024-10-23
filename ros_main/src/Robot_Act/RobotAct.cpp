@@ -211,6 +211,9 @@ bool RobotAct::Main()
     case ACT_FIND_PERSON:
         if (nLastActCode != ACT_FIND_PERSON)
         {
+            std::advance(ARACT_IT, nCurActIndex);
+            string StrGoto = ARACT_IT->strTarget;
+            std::advance(ARACT_IT, -nCurActIndex);
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             for (int i = 0; i < nPeopleCount; i++)
             {

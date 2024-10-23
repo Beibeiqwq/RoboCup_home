@@ -132,7 +132,7 @@ public:
 	int nPeopleCount = 0;	   // 人物计数
 	int nLitterCount = 0;	   // 垃圾计数
 	int nPlaceCount  = 1;	   // 房间计数
-	int n
+	// int n
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
 	
