@@ -40,6 +40,7 @@ void RobotAct::Init()
     pass_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
     client_speak     = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
     cliGetWPName     = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
+    chatter_server_  = n.advertiseService("/human_chatter", &RobotAct::ChatterCallback, this);
     speak_pub        = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
     speed_pub        = n.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     yolo_pub         = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
@@ -696,4 +697,16 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
         }
     }
     return strRes;
+}
+
+bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
+{
+    printf("识别到: %s\n", req.data.c_str());
+    std::string voice_txt = req.data;
+    if (voice_txt.find("你好") != std::string::npos)
+    {
+        Speak("你好 我是王泽与");
+    }
+    resp.success = true;
+    return resp.success;
 }

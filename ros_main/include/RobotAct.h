@@ -114,6 +114,7 @@ public:
 	void PassSwitch(bool);
  	void GrabResultCallback(const std_msgs::String::ConstPtr& res);
 	void PassResultCallback(const std_msgs::String::ConstPtr& res);
+	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
 	/*--------------任务类---------------*/
 	int nPeopleCount = 0;	   // 人物计数
 	int nLitterCount = 0;	   // 垃圾计数
@@ -133,6 +134,7 @@ private:
 	ros::Subscriber sub_pose;
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
+	ros::ServiceServer chatter_server_;
 	waterplus_map_tools::GetWaypointByName srvName;
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入

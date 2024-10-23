@@ -9,15 +9,11 @@
 #include <robot_voice/StringToVoice.h>
 #include <std_msgs/String.h>
 #include <vector>
-
 #include <sound_play/SoundRequest.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include "xfyun_waterplus/IATSwitch.h"
-#include <waterplus_map_tools/Waypoint.h>
-#include <waterplus_map_tools/GetWaypointByName.h>
 #include <robot_voice/StringToVoice.h>
-#include "wpb_home_tutorials/Follow.h"
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 using namespace std;
 class RobotController {
@@ -33,7 +29,6 @@ public:
   int Init(ros::NodeHandle& nh) {
     cmd_pub_ = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1000);
     client_ = nh.serviceClient<robot_voice::StringToVoice>("str2voice");
-    cliGetWPName = nh.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
     return 0;
   }
 
@@ -82,8 +77,6 @@ private:
   ros::ServiceServer chatter_server_;
   ros::Publisher cmd_pub_;
   ros::ServiceClient client_;
-  ros::ServiceClient cliGetWPName;
-  waterplus_map_tools::GetWaypointByName srvName;
   
 };
 

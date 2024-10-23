@@ -176,6 +176,14 @@
       name="voice_creator"
       output="screen"
   />
+  
+    <node
+      pkg="robot_voice"
+      type="voice_detector"
+      name="voice_detector"
+      launch-prefix="bash -c 'sleep 5; $0 $@'"
+      output="screen"
+  />
   <!-- openpose节点 -->
   
   <!-- 抓取服务 -->
@@ -185,5 +193,6 @@
   </node>
   <!-- 递给服务 -->
   <node pkg="wpb_home_behaviors" type="wpb_home_pass_server" name="wpb_home_pass_server"/>
+
 
 </launch>
