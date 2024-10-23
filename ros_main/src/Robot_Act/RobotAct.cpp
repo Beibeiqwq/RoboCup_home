@@ -461,7 +461,7 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
     speed_pub.publish(vel_cmd);
 }
 
-void RobotAct::YOLOV5CB_3D(const depth_yolo::tfpoint_topic& msg)
+void RobotAct::YOLOV5CB_3D(const depth_yolo::tfpoint& msg)
 {
     cout << "[YOLOV5CB_3D]:接收到Yolov5数据" << endl;
     YOLO_BBOX_3D.clear();

@@ -103,7 +103,7 @@ public:
     /*--------------图像类---------------*/
 	void YoloStart();
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
-	void YOLOV5CB_3D(const wpb_yolo5::BBox3D& msg);
+	void YOLOV5CB_3D(const depth_yolo::tfpoint& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
@@ -146,6 +146,7 @@ private:
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
 	waterplus_map_tools::GetWaypointByName srvName;
+	ros::Subscriber tf_point_sub;
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   //进门坐标
