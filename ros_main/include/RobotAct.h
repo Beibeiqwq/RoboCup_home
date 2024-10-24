@@ -48,12 +48,7 @@
 #include "xfyun_waterplus/IATSwitch.h"
 #include <waterplus_map_tools/GetWaypointByName.h>
 #include <robot_voice/StringToVoice.h>
-#include "ifly_voice/qisr.h"
-#include "ifly_voice/qtts.h"
-#include "ifly_voice/msp_cmn.h"
-#include "ifly_voice/formats.h"
-#include "ifly_voice/msp_errors.h"
-#include "ifly_voice/speech_recognizer.h"
+
 /// @brief YOLOV5 BoundingBox2D 格式
 typedef struct BBox2D
 {
