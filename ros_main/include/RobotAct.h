@@ -41,6 +41,7 @@
 #include <waterplus_map_tools/GetWaypointByName.h>
 #include <wpb_yolo5/BBox2D.h>
 #include <wpb_yolo5/BBox3D.h>
+#include <depth_yolo/tfpoint.h>
 #include <sound_play/SoundRequest.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -59,14 +60,15 @@ typedef struct BBox2D
     float probability;
 } BBox2D;
 
-typedef struct BBox3D
+typedef struct tfpoint
 {
 	std::string name;
 	float tx;
 	float ty;
 	float tz;
 	
-} BBox3D;
+} tfpoint;
+
 
 
 using namespace cv;
@@ -115,6 +117,7 @@ public:
 	string FindWord(string, vector<string> &arWord);
 	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
+	bool bContact = false;				//是否开启交流
 	/*--------------动作类---------------*/
 	bool bGrabDone;
 	bool bPassDone;
@@ -175,10 +178,10 @@ private:
 	bool bOpenpose = false;	   // 动作识别
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
-	std::vector<BBox3D> YOLO_BBOX_3D;
+	std::vector<tfpoint> YOLO_BBOX_3D;
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 	std::vector<BBox2D> recv_BBOX;
-	std::vector<BBox3D> recv_BBOX_3D;
+	std::vector<tfpoint> recv_BBOX_3D;
 	std::list<stAct>::iterator ARACT_IT = arAct.begin();
 	std::vector<string>::iterator Placement_IT = arKWPlacement.begin();
 };

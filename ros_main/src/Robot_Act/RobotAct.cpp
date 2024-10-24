@@ -46,7 +46,7 @@ void RobotAct::Init()
     yolo_pub = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
-    tf_point_sub = n.subscribe<depth_yolo::tfpoint>("/depth_yolo/tfpoint_topic",30, &YOLOV5CB_3D, this);
+    tf_point_sub = n.subscribe("/depth_yolo/tfpoint_topic", 30, &RobotAct::YOLOV5CB_3D, this);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -226,18 +226,11 @@ bool RobotAct::Main()
         }
         break;
     
-    // case ACT_CONTACT:
-    //     if (nLastActCode != ACT_CONTACT)
-    //     {
-    //         printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-    //         strToSpeak = arAct[nCurActIndex].strTarget;
-    //         std_msgs::String rosSpeak;
-    //         rosSpeak.data = strToSpeak;
-    //         speak_pub.publish(rosSpeak);
-    //         strToSpeak = "";
-    //         usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
-    //         nCurActIndex++;
-    //     }
+    case ACT_CONTACT:
+        if (nLastActCode != ACT_CONTACT)
+        {
+            bContact = false;
+        }
 
 
     case ACT_GRAB:
@@ -470,7 +463,7 @@ void RobotAct::YOLOV5CB_3D(const depth_yolo::tfpoint& msg)
 
     if (nNum > 0)
     {
-        BBox3D box_object;
+        tfpoint box_object;
         for (int i = 0; i < nNum; i++)
         {
             box_object.name = msg.name[i];
@@ -752,12 +745,37 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
 
 bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
 {
-    printf("识别到: %s\n", req.data.c_str());
-    std::string voice_txt = req.data;
-    if (voice_txt.find("你好") != std::string::npos)
+    if (bContact == true)
     {
-        Speak("你好 我是王泽与");
+        printf("识别到: %s\n", req.data.c_str());
+        std::string voice_txt = req.data;
+
+        if (voice_txt.find("你好") != std::string::npos)
+        {
+            Speak("你好，我是服务机器人，请问需要什么");
+        }
+        if (voice_txt.find("水")!= std::string::npos)
+        {
+            Speak("你需要水");
+        }
+        if (voice_txt.find("饼干") != std::string::npos)
+        {
+            Speak("你需要饼干");
+        }
+        if (voice_txt.find("面包")!= std::string::npos)
+        {
+            Speak("你需要面包");
+        }if (voice_txt.find("洗手液") != std::string::npos)
+        {
+            Speak("你需要洗手液");
+        }
+        if (voice_txt.find("薯片")!= std::string::npos)
+        {
+            Speak("你需要薯片");
+        }
+
+        resp.success = true;
+        return resp.success;
     }
-    resp.success = true;
-    return resp.success;
+
 }
