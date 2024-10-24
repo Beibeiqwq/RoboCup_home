@@ -93,11 +93,14 @@ public:
 	void YoloStart();
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
+	void FaceRecogCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
 	void ObjDetect();
+	void FaceDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
-	string strDetect;		   // YOLO物品识别
+	string strDetect;		   		 // YOLO物品识别
 	string GlobalstrAction;          // POSE动作识别
+	string strFace;                  // FACE人脸识别
 	/*--------------语音类---------------*/
 	std::string strListen;
 	bool bKeyVoice = false;
@@ -126,6 +129,7 @@ public:
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
 	bool bActionDetect= false; // 动作标志位
+	bool bFaceDetect  = false; // 人脸标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher speak_pub;
@@ -136,6 +140,7 @@ private:
 	ros::Subscriber sub_yolo;
 	ros::Subscriber sub_ent;
 	ros::Subscriber sub_pose;
+	ros::Subscriber sub_face;
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
 	ros::ServiceServer chatter_server_;

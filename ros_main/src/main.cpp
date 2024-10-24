@@ -124,15 +124,15 @@ void MainCallback(const ros::TimerEvent &e)
             else
             {
                 cout << "[TaskPub]发布任务: 视角修正" << endl;
-                if(!Robot._bFixView_ok)
-                {
-                    Robot._bFixView = true;
-                }
-                else
-                {
-                    Robot._bFixView = false;
-                }
-                //Robot._bFixView_ok = true; //测试用
+                // if(!Robot._bFixView_ok)
+                // {
+                //     Robot._bFixView = true;
+                // }
+                // else
+                // {
+                //     Robot._bFixView = false;
+                // }
+                Robot._bFixView_ok = true; //测试用
                 if (Robot._bFixView_ok == true) //回调函数中视角修正
                 {
                     //Robot._bFixView = false;

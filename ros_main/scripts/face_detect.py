@@ -29,7 +29,8 @@ class ImageConverter:
         # 创建一个图像发布者对象，用来发布处理之后的数据
         self.image_pub = rospy.Publisher("/imageDeal", Image, queue_size=5)
  
-        self.image_raw_sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.subscriberPhotoCallbackUpdate)
+        #self.image_raw_sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.subscriberPhotoCallbackUpdate)
+        self.image_raw_sub = rospy.Subscriber('/kinect2/hd/image_color_rect', Image, self.subscriberPhotoCallbackUpdate)
  
     def trainFunction(self):
         for person in os.listdir(self.train_dir):

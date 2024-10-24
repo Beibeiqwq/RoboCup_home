@@ -13,6 +13,7 @@ RobotAct::RobotAct()
     strListen = "";
     bGrabDone = false;
     bPassDone = false;
+    strFace = "";
 }
 
 RobotAct::~RobotAct()
@@ -46,6 +47,7 @@ void RobotAct::Init()
     yolo_pub         = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub    = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
+    sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCB, this);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -272,9 +274,13 @@ bool RobotAct::Main()
         {
             if (bPeopleFound == true)
             {
-                bOpenpose = true;
-                ActionDetect();
-                nCurActIndex++;
+                FaceDetect();
+                if(bFaceDetect == true)
+                {
+                    bOpenpose = true;
+                    ActionDetect();
+                    nCurActIndex++;
+                }
             }
         }
         break;
@@ -424,9 +430,9 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
         {
             box_object.name = msg.name[i];               // 识别到的名字
             box_object.left = msg.left[i];               // x_min
-            cout << "left:" << msg.left[i] << endl;
+            //cout << "left:" << msg.left[i] << endl;
             box_object.right = msg.right[i];             // x_max
-            cout << "right" << msg.right[i] << endl;
+            //cout << "right" << msg.right[i] << endl;
             box_object.top = msg.top[i];                 // y_min
             //cout << "top" << msg.top[i] << endl;
             box_object.bottom = msg.bottom[i];           // y_max
@@ -438,7 +444,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             //Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
             {
-                cout << "进入if Peoplename.length()>0" << endl;
+                //cout << "进入if Peoplename.length()>0" << endl;
                 bPeopleFound = true;
                 nYoloPeople = i;
                 _nImgHeight = box_object.top - box_object.bottom;
@@ -639,7 +645,9 @@ void RobotAct::ActionDetect()
     if (_nActionStage == 4)
     {
         _nActionStage = 1;
+        bActionDetect = true;
         bOpenpose = false;
+        return;
     }
     if (_nActionStage == 0)
         return;
@@ -662,7 +670,7 @@ void RobotAct::ActionDetect()
         Speak("识别到第二个动作");
         sleep(1);
         Speak(GlobalstrAction);
-        bActionDetect = true;
+        //bActionDetect = true;
         nPeopleCount++;
         _nActionStage = 4;
     }
@@ -751,5 +759,45 @@ void RobotAct::ObjDetect()
     if (strObject.length() > 0)
     {
         Speak("识别到物体" + strObject);
+    }
+}
+
+void RobotAct::FaceRecogCB(const std_msgs::String::ConstPtr& msg)
+{
+    cout << "[RobotAct]FaceRecogCB: " << msg->data << endl;
+    strFace = msg->data;
+    cout << msg->data << endl;
+}
+
+void RobotAct::FaceDetect()
+{
+    cout << "[RobotAct]FaceDetect" << endl;
+    // if(bPeopleFound == false)
+    //     return;
+    if (strFace.find("gjy") != std::string::npos)
+    {
+        Speak("你好，你是郭嘉悦");
+        bFaceDetect = true;
+    }
+    if (strFace.find("lwj") != std::string::npos)
+    {
+        Speak("你好，你是林文俊");
+        sleep(2);
+        bFaceDetect = true;
+        return;
+    }
+    if (strFace.find("wsx") != std::string::npos)
+    {
+        Speak("你好，你是王烁心");
+        bFaceDetect = true;
+    }
+    if (strFace.find("wzy") != std::string::npos)
+    {
+        Speak("你好，你是王则与大厦比");
+        bFaceDetect = true;
+    }
+    else
+    {
+        bFaceDetect = false;
     }
 }

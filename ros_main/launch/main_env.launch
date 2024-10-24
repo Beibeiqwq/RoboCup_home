@@ -193,6 +193,6 @@
   </node>
   <!-- 递给服务 -->
   <node pkg="wpb_home_behaviors" type="wpb_home_pass_server" name="wpb_home_pass_server"/>
-
-
+  <!-- 人脸识别 -->
+  <node pkg="ros_main" type="face_detect.py" name="face_detect" output="screen"/>"
 </launch>
