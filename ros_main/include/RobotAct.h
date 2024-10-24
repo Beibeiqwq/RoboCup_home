@@ -84,6 +84,7 @@ public:
 	vector<string> arKWAction;	  // 行为
 	/*--------------功能类---------------*/
     std::list<stAct> arAct; 
+	
 	int nCurActIndex;
 	int nCurActCode;
 	void Init();

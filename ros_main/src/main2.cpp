@@ -109,11 +109,15 @@ void MainCallback(const ros::TimerEvent &e)
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
             Robot.arAct.push_back(newAct);
+            cout << "1" << endl;
             if (Robot.nPeopleCount != 3)
             {
                 TimerAct = TimerAct_READY;
+                cout << "2" << endl;
+                bAction = true;
             }
             TimerAct = TimerAct_FIND_PERSON;
+            bAction = true;
         }
 
         if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive ==true)
@@ -125,6 +129,7 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.strTarget = "FIND_PERSON";
                 Robot.arAct.push_back(newAct);
                 TimerAct = TimerAct_CONTACT;
+                bAction = true;
             }
             
         }
@@ -235,7 +240,7 @@ int main(int argc, char** argv)
             }
         }
 
-        if (nState == STATE_WAIT_CMD)
+        if (nState == STATE_ACTION)
         {
             bool main_finish = Robot.Main();
             //nState = STATE_WAIT_CMD;

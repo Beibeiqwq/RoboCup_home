@@ -106,7 +106,7 @@ public:
   }
 
 private:
-	const std::string login_params_ = "appid = f8a5a076, work_dir = .";
+	const std::string login_params_ = "appid = a4f2bb87, work_dir = .";
 	const std::string session_begin_params_ =
 		"sub = iat, domain = iat, language = zh_cn, "
 		"accent = mandarin, sample_rate = 16000, "
