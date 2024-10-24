@@ -243,7 +243,7 @@ bool RobotAct::Main()
             {
                 SetSpeed(0, 0, 0.2); //方案一
                 //方案二 遍历房间内航点
-
+                nCurActIndex++;
             }
         }
         break;
@@ -257,6 +257,12 @@ bool RobotAct::Main()
                 cout << "!OBJECT_FOUND!!!!!" << endl;
                 SetSpeed(0, 0, 0.2);//方案一
                 //方案二 遍历房间内航点
+                //nCurActIndex++;
+            }
+            else
+            {
+                ObjDetect();
+                nCurActIndex++;
             }
         }
         break;
@@ -268,6 +274,7 @@ bool RobotAct::Main()
             {
                 bOpenpose = true;
                 ActionDetect();
+                nCurActIndex++;
             }
         }
         break;
@@ -426,7 +433,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             //cout << "bottom" << msg.bottom[i] << endl;
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
-            strDetect = msg.name[i];
+            //strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, strPerson);
             //Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
@@ -438,6 +445,10 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
                 _nImgWidth = box_object.right - box_object.left;
                 _nTargetX = 1024;
                 _nTargetY = 540;
+            }
+            else
+            {
+                strDetect = msg.name[i];
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -496,14 +507,14 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
 void RobotAct::OpenPoseCB(const std_msgs::String::ConstPtr &msg)
 {
     cout << "[OpenPoseCB]接收到OpenPose数据" << endl;
-    string sAction;
+    string strAction;
     string strOpenpose = msg->data;
-    if (bOpenpose == true) // 写为开关模式？
+    if (bOpenpose == true) 
     {
-        sAction = FindWord(strOpenpose, arKWAction);
-        if (sAction.length() > 0)
+        strAction = FindWord(strOpenpose, arKWAction);
+        if (strAction.length() > 0)
         {
-            strAction = sAction;
+            GlobalstrAction = strAction;
         }
     }
 }
@@ -624,7 +635,7 @@ void RobotAct::ActionDetect()
     cout << "[ActionDetect]动作识别开始...." << endl;
     Speak("动作识别开始");
     sleep(2);
-    strAction = "站立";
+    GlobalstrAction = "站立";
     if (_nActionStage == 4)
     {
         _nActionStage = 1;
@@ -636,7 +647,7 @@ void RobotAct::ActionDetect()
     {
         Speak("识别到第一个动作");
         sleep(1);
-        Speak(strAction);
+        Speak(GlobalstrAction);
         sleep(2);
         _nActionStage = 2;
     }
@@ -650,7 +661,7 @@ void RobotAct::ActionDetect()
     {
         Speak("识别到第二个动作");
         sleep(1);
-        Speak(strAction);
+        Speak(GlobalstrAction);
         bActionDetect = true;
         nPeopleCount++;
         _nActionStage = 4;
@@ -702,13 +713,43 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
 bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
 {
     if(bKeyVoice == false)
-        return;
+        return false;
     printf("识别到: %s\n", req.data.c_str());
     std::string voice_txt = req.data;
-    if (voice_txt.find("你好") != std::string::npos)
+    if (voice_txt.find("抓取") != std::string::npos)
     {
-        Speak("你好 我是王泽与");
+        Speak("请在我抬起手臂后将物品放置在我的抓取区域");
+        Raise_arm();
+        sleep(5);
+        Speak("手臂已抬起，请确认是否放置完成");
+    }
+    if (voice_txt.find("确认") != std::string::npos)
+    {
+        Speak("好的，我将进行抓取 请小心");
+        sleep(2);
+        Grab_arm();
     }
     resp.success = true;
     return resp.success;
+}
+
+void RobotAct::Raise_arm()
+{
+    cout << "正在抬起手臂...." << endl;
+}
+
+void RobotAct::Grab_arm()
+{
+    cout << "正在抓取..." << endl;
+}
+
+void RobotAct::ObjDetect()
+{
+    cout << "开始识别物体" << endl;
+    string strObject;
+    strObject = FindWord(strDetect, arKWObject);
+    if (strObject.length() > 0)
+    {
+        Speak("识别到物体" + strObject);
+    }
 }

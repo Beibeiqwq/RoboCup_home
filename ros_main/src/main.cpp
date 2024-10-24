@@ -53,12 +53,6 @@ void Init_keywords()
 
     // 人名关键词
     Robot.arKWPerson.push_back("Jack");
-    Robot.arKWPerson.push_back("Linda");
-    Robot.arKWPerson.push_back("Lucy");
-    Robot.arKWPerson.push_back("Grace");
-    Robot.arKWPerson.push_back("John");
-    Robot.arKWPerson.push_back("Allen");
-    Robot.arKWPerson.push_back("Richard");
     Robot.arKWPerson.push_back("Mike");
     Robot.arKWPerson.push_back("Lily");
 

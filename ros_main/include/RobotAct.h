@@ -94,9 +94,10 @@ public:
 	void YOLOV5CB(const wpb_yolo5::BBox2D& msg);
 	void OpenPoseCB(const std_msgs::String::ConstPtr& msg);
 	void ActionDetect();
+	void ObjDetect();
 	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	string strDetect;		   // YOLO物品识别
-	string strAction;          // POSE动作识别
+	string GlobalstrAction;          // POSE动作识别
 	/*--------------语音类---------------*/
 	std::string strListen;
 	bool bKeyVoice = false;
@@ -113,6 +114,8 @@ public:
 	ros::Subscriber pass_result_sub;
 	void GrabSwitch(bool);
 	void PassSwitch(bool);
+	void Raise_arm();
+	void Grab_arm();
  	void GrabResultCallback(const std_msgs::String::ConstPtr& res);
 	void PassResultCallback(const std_msgs::String::ConstPtr& res);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
