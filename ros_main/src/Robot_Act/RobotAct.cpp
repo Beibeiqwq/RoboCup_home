@@ -38,7 +38,7 @@ void RobotAct::Init()
     sub_pose = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
     grab_result_sub = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
     pass_result_sub = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
-    client_speak = n.serviceClient<robot_voice::StringToVoice>("str2voice");
+    client_speak = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
     cliGetWPName = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
     chatter_server_  = n.advertiseService("/human_chatter", &RobotAct::ChatterCallback, this);
     speak_pub = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
@@ -187,9 +187,9 @@ bool RobotAct::Main()
     // 语音识别的关键词
     int nKeyWord = -1;
     // 当前任务状态
-    std::advance(ARACT_IT, nCurActIndex);
+    // std::advance(ARACT_IT, nCurActIndex);
     nCurActCode = ARACT_IT->nAct;
-    std::advance(ARACT_IT, -nCurActIndex);
+    // std::advance(ARACT_IT, -nCurActIndex);
 
     
     // nCurActIndex == 当前任务ID
@@ -220,9 +220,9 @@ bool RobotAct::Main()
             {
                 AddNewWaypoint_yolo(YOLO_BBOX_3D[i].name);
                 arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
-            }
-            
-            
+            }  
+            nCurActIndex++;
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
     
@@ -230,6 +230,11 @@ bool RobotAct::Main()
         if (nLastActCode != ACT_CONTACT)
         {
             bContact = false;
+            if (bContact == true)
+            {
+                nCurActIndex++;
+                std::advance(ARACT_IT, nCurActIndex);
+            }
         }
 
 
@@ -266,22 +271,6 @@ bool RobotAct::Main()
             std::advance(ARACT_IT, nCurActIndex);
         }
         break;
-
-    // case ACT_SPEAK:
-    //     if (nLastActCode != ACT_SPEAK)
-    //     {
-    //         printf("[RobotAct] %d - Speak %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
-    //         strToSpeak = ARACT_IT->strTarget;
-    //         std_msgs::String rosSpeak;
-    //         rosSpeak.data = strToSpeak;
-    //         speak_pub.publish(rosSpeak);
-    //         strToSpeak = "";
-    //         usleep(ARACT_IT->nDuration * 1000 * 1000);
-    //         std::advance(ARACT_IT, -nCurActIndex);
-    //         nCurActIndex++;
-    //         std::advance(ARACT_IT, nCurActIndex);
-    //     }
-    //     break;
 
         // case ACT_LISTEN:
         //     if (nLastActCode != ACT_LISTEN)

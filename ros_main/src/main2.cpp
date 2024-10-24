@@ -129,63 +129,72 @@ void MainCallback(const ros::TimerEvent &e)
             
         }
 
-
         if (TimerAct ==TimerAct_CONTACT)
         {
-            
-        }
-
-        string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ)
-        {
-            if (!Robot.bObjectFound && Robot.bGrabDone != true)
+            if(Robot.nObject < 3)
             {
-                //Robot.SetSpeed(0, 0, 0.1);
                 stAct newAct;
-                newAct.nAct = ACT_FIND_OBJ;
-                newAct.strTarget = "FIND_OBJ";
+                newAct.nAct = ACT_CONTACT;
+                newAct.strTarget = "CONTACT";
                 Robot.arAct.push_back(newAct);
             }
             else
             {
-                //Robot.GrabSwitch(true);
-                stAct newAct;
-                newAct.nAct = ACT_GRAB;
-                newAct.strTarget = object;
-                Robot.arAct.push_back(newAct);
-                TimerAct = TimerAct_GOTO_DUSTBIN;
-            }
-        }
-
-        if (TimerAct == TimerAct_GOTO_DUSTBIN)
-        {
-            if(Robot.bGrabDone == true)
-            {
-                stAct newAct;
-                newAct.nAct = ACT_GOTO;
-                newAct.strTarget = Robot.coord_dustbin;
-                Robot.arAct.push_back(newAct);
-                TimerAct = TimerAct_PASS;
-            }
-            else
-            {
-                TimerAct = TimerAct_FIND_OBJ;
-            }
-        }
-
-        if(TimerAct == TimerAct_PASS)
-        {
-            if(Robot.bGrabDone == true && Robot.bPassDone != true)
-            {
-                stAct newAct;
-                newAct.nAct = ACT_PASS;
-                newAct.strTarget = true;
-                Robot.arAct.push_back(newAct);
-                Robot.nLitterCount++;
-                bAction = true;
                 TimerAct = TimerAct_READY;
             }
         }
+
+        // string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
+        // if (TimerAct == TimerAct_FIND_OBJ)
+        // {
+        //     if (!Robot.bObjectFound && Robot.bGrabDone != true)
+        //     {
+        //         //Robot.SetSpeed(0, 0, 0.1);
+        //         stAct newAct;
+        //         newAct.nAct = ACT_FIND_OBJ;
+        //         newAct.strTarget = "FIND_OBJ";
+        //         Robot.arAct.push_back(newAct);
+        //     }
+        //     else
+        //     {
+        //         //Robot.GrabSwitch(true);
+        //         stAct newAct;
+        //         newAct.nAct = ACT_GRAB;
+        //         newAct.strTarget = object;
+        //         Robot.arAct.push_back(newAct);
+        //         TimerAct = TimerAct_GOTO_DUSTBIN;
+        //     }
+        // }
+
+        // if (TimerAct == TimerAct_GOTO_DUSTBIN)
+        // {
+        //     if(Robot.bGrabDone == true)
+        //     {
+        //         stAct newAct;
+        //         newAct.nAct = ACT_GOTO;
+        //         newAct.strTarget = Robot.coord_dustbin;
+        //         Robot.arAct.push_back(newAct);
+        //         TimerAct = TimerAct_PASS;
+        //     }
+        //     else
+        //     {
+        //         TimerAct = TimerAct_FIND_OBJ;
+        //     }
+        // }
+
+        // if(TimerAct == TimerAct_PASS)
+        // {
+        //     if(Robot.bGrabDone == true && Robot.bPassDone != true)
+        //     {
+        //         stAct newAct;
+        //         newAct.nAct = ACT_PASS;
+        //         newAct.strTarget = true;
+        //         Robot.arAct.push_back(newAct);
+        //         Robot.nLitterCount++;
+        //         bAction = true;
+        //         TimerAct = TimerAct_READY;
+        //     }
+        // }
 
         if(bAction == true)
         {
@@ -226,7 +235,7 @@ int main(int argc, char** argv)
             }
         }
 
-        if (nState == STATE_ACTION)
+        if (nState == STATE_WAIT_CMD)
         {
             bool main_finish = Robot.Main();
             //nState = STATE_WAIT_CMD;

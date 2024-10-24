@@ -1,5 +1,5 @@
 <launch>
-	<node pkg="ros_main" type="main" name="main" output="screen">
+	<node pkg="ros_main" type="main2" name="main2" output="screen">
 	    <!-- <rosparam command="load" file="$(find ros_main)/param/paramA_main.yaml" />  -->
 	</node>
 </launch>

@@ -48,7 +48,12 @@
 #include "xfyun_waterplus/IATSwitch.h"
 #include <waterplus_map_tools/GetWaypointByName.h>
 #include <robot_voice/StringToVoice.h>
-
+#include "ifly_voice/qisr.h"
+#include "ifly_voice/qtts.h"
+#include "ifly_voice/msp_cmn.h"
+#include "ifly_voice/formats.h"
+#include "ifly_voice/msp_errors.h"
+#include "ifly_voice/speech_recognizer.h"
 /// @brief YOLOV5 BoundingBox2D 格式
 typedef struct BBox2D
 {
@@ -133,7 +138,8 @@ public:
 	int nPeopleCount = 0;	   // 人物计数
 	int nLitterCount = 0;	   // 垃圾计数
 	int nPlaceCount  = 1;	   // 房间计数
-	//int n;
+	int nContact = 0;		   // 交流次数计数
+	int nObject = 0;		   // 通过对话知道的需要抓取的物品计数
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
 	
@@ -179,7 +185,7 @@ private:
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	std::vector<tfpoint> YOLO_BBOX_3D;
-	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
+	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT = YOLO_BBOX.begin(); // 迭代器
 	std::vector<BBox2D> recv_BBOX;
 	std::vector<tfpoint> recv_BBOX_3D;
 	std::list<stAct>::iterator ARACT_IT = arAct.begin();
