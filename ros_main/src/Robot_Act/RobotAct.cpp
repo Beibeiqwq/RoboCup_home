@@ -139,7 +139,7 @@ void RobotAct::AddNewWaypoint_yolo(string inStr)
     new_waypoint.name = inStr;
     new_waypoint.pose = new_pos.pose;
     add_waypoint_pub.publish(new_waypoint);
-
+    bPeopleFound = false;
     ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
 
 }
@@ -163,17 +163,20 @@ bool RobotAct::Main()
     std::advance(ARACT_IT, nCurActIndex);
  
     nCurActCode = ARACT_IT->nAct;  
-    std::advance(ARACT_IT, -nCurActIndex);
-    cout << nCurActCode << endl;
+    cout << "当前指向任务为：" << ARACT_IT->strTarget << endl; 
     
+    std::advance(ARACT_IT, -nCurActIndex);
+    cout << "nCurActCode: " << nCurActCode << endl;
+    cout << "nLastActCode: " << nLastActCode << endl;
+    cout << "bPeopleFound: " << bPeopleFound << endl;
     // nCurActIndex == 当前任务ID
     // nLastActCode == 上一个任务ID
     switch (nCurActCode)
     {
-    case ACT_GOTO:
-        if (nLastActCode != ACT_GOTO && bPeopleFound ==false)
+    case ACT_GOTO://1
+        if (1 == 1)
         {
-            cout << "5" << endl;
+            
             std::advance(ARACT_IT, nCurActIndex);
             
             string StrGoto = ARACT_IT->strTarget;
@@ -182,14 +185,18 @@ bool RobotAct::Main()
             
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             bArrive = Goto(StrGoto);
-            nCurActIndex++;
-            //std::advance(ARACT_IT, nCurActIndex);
+            nCurActIndex++;//value=2
+            std::advance(ARACT_IT, nCurActIndex - 1);//指向dining room
+            //bArrive = false;
+            cout << "当前 nCurActIndex值: " << nCurActIndex << endl;//2
         }
         break;
 
-    case ACT_FIND_PERSON:
+    case ACT_FIND_PERSON://2
         if (nLastActCode != ACT_FIND_PERSON)
         {
+            cout << "进入找人状态" <<endl;
+            Speak("开始找人");
             std::advance(ARACT_IT, nCurActIndex);
             string StrGoto = ARACT_IT->strTarget;
             std::advance(ARACT_IT, -nCurActIndex);
@@ -200,18 +207,18 @@ bool RobotAct::Main()
                 arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
             }  
             nCurActIndex++;
-            // std::advance(ARACT_IT, nCurActIndex);
+            std::advance(ARACT_IT, nCurActIndex);
         }
         break;
     
-    case ACT_CONTACT:
+    case ACT_CONTACT://3
         if (nLastActCode != ACT_CONTACT)
         {
             bContact = false;
             if (bContact == true)
             {
                 nCurActIndex++;
-                // std::advance(ARACT_IT, nCurActIndex);
+                std::advance(ARACT_IT, nCurActIndex);
             }
         }
 
@@ -334,9 +341,9 @@ string ActionText(stAct *inAct)
         ActText = "去往地点 ";
         ActText += inAct->strTarget;
     }
-    if (inAct->nAct == ACT_FIND_OBJ)
+    if (inAct->nAct == ACT_FIND_PERSON)
     {
-        ActText = "搜索物品 ";
+        ActText = "寻找人 ";
         ActText += inAct->strTarget;
     }
     if (inAct->nAct == ACT_GRAB)
@@ -349,11 +356,11 @@ string ActionText(stAct *inAct)
         ActText = "把物品递给 ";
         ActText += inAct->strTarget;
     }
-    // if (inAct->nAct == ACT_SPEAK)
-    // {
-    //     ActText = "说话 ";
-    //     ActText += inAct->strTarget;
-    // }
+    if (inAct->nAct == ACT_CONTACT)
+    {
+        ActText = "交流 ";
+        ActText += inAct->strTarget;
+    }
     if (inAct->nAct == ACT_MOVE)
     {
         ActText = "移动 ( ";
@@ -379,7 +386,7 @@ void RobotAct::ShowActs()
     printf("显示行为链表:\n");
     int nNumOfAct = arAct.size();
     stAct tmpAct;
-    for (auto ARACT_IT = arAct.begin(); ARACT_IT != arAct.end(); ARACT_IT++)
+    for (auto ARACT_IT = arAct.begin(); ARACT_IT != arAct.end(); ++ARACT_IT)
     {
         tmpAct = *ARACT_IT;
         string act_txt = ActionText(&tmpAct);
@@ -430,11 +437,12 @@ void RobotAct::YOLOV5CB_3D(const depth_yolo::tfpoint& msg)
 
     if (nNum > 0)
     {
+        bPeopleFound = true;
         tfpoint box_object;
         for (int i = 0; i < nNum; i++)
         {
             box_object.name = msg.name[i];
-            
+            nPeopleCount++;
             recv_BBOX_3D.push_back(box_object);
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
@@ -612,7 +620,7 @@ void RobotAct::Exit()
 void RobotAct::Enter()
 {
     cout << "[RobotAct]正在前往进门地点...." << endl;
-    Goto(_coord_cmd);
+    bArrive = Goto(_coord_cmd);
 }
 
 /// @brief 程序参数打印

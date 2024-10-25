@@ -84,7 +84,7 @@ public:
 	vector<string> arKWAction;	  // 行为
 	/*--------------功能类---------------*/
     std::list<stAct> arAct = { stAct{0, "0", 0.0, 0.0, 0.0, 0.0}};
-	
+	std::list<stAct>::iterator ARACT_IT = arAct.begin();
 	int nCurActIndex;
 	int nCurActCode;
 	void Init();
@@ -184,7 +184,7 @@ private:
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT = YOLO_BBOX.begin(); // 迭代器
 	std::vector<BBox2D> recv_BBOX;
 	std::vector<tfpoint> recv_BBOX_3D;
-	std::list<stAct>::iterator ARACT_IT = arAct.begin();
+	
 	std::vector<string>::iterator Placement_IT = arKWPlacement.begin();
 };
 

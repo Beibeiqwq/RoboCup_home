@@ -99,7 +99,7 @@ void MainCallback(const ros::TimerEvent &e)
     if (nState == STATE_WAIT_CMD)
     {
         bool bAction = false;//是否压完任务
-        if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
+        if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3))
             nState = STATE_GOTO_EXIT;
 
         if (TimerAct == TimerAct_READY)
@@ -109,22 +109,14 @@ void MainCallback(const ros::TimerEvent &e)
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
             Robot.arAct.push_back(newAct);
-            // for (auto it = Robot.arAct.begin(); it != Robot.arAct.end(); ++it)
-            // {
-            //     cout << "*" << endl;
-            //     cout<<  it->nAct  << endl;
-            // }
             
             if (Robot.bPeopleFound == false)
             {
-                TimerAct = TimerAct_READY;
-                cout << "check_2" << endl;
-                bAction = true;
+                TimerAct = TimerAct_FIND_PERSON;
             }
             else
             {
-                TimerAct = TimerAct_FIND_PERSON;
-                bAction = true;
+                TimerAct = TimerAct_CONTACT;
             }
 
         }
@@ -133,6 +125,7 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if (!Robot.bPeopleFound)
             {
+                cout << "[TaskPub]发布任务: 识别人位置："<< endl;
                 stAct newAct;
                 newAct.nAct = ACT_FIND_PERSON; 
                 newAct.strTarget = "FIND_PERSON";
@@ -158,58 +151,6 @@ void MainCallback(const ros::TimerEvent &e)
             }
         }
 
-        // string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        // if (TimerAct == TimerAct_FIND_OBJ)
-        // {
-        //     if (!Robot.bObjectFound && Robot.bGrabDone != true)
-        //     {
-        //         //Robot.SetSpeed(0, 0, 0.1);
-        //         stAct newAct;
-        //         newAct.nAct = ACT_FIND_OBJ;
-        //         newAct.strTarget = "FIND_OBJ";
-        //         Robot.arAct.push_back(newAct);
-        //     }
-        //     else
-        //     {
-        //         //Robot.GrabSwitch(true);
-        //         stAct newAct;
-        //         newAct.nAct = ACT_GRAB;
-        //         newAct.strTarget = object;
-        //         Robot.arAct.push_back(newAct);
-        //         TimerAct = TimerAct_GOTO_DUSTBIN;
-        //     }
-        // }
-
-        // if (TimerAct == TimerAct_GOTO_DUSTBIN)
-        // {
-        //     if(Robot.bGrabDone == true)
-        //     {
-        //         stAct newAct;
-        //         newAct.nAct = ACT_GOTO;
-        //         newAct.strTarget = Robot.coord_dustbin;
-        //         Robot.arAct.push_back(newAct);
-        //         TimerAct = TimerAct_PASS;
-        //     }
-        //     else
-        //     {
-        //         TimerAct = TimerAct_FIND_OBJ;
-        //     }
-        // }
-
-        // if(TimerAct == TimerAct_PASS)
-        // {
-        //     if(Robot.bGrabDone == true && Robot.bPassDone != true)
-        //     {
-        //         stAct newAct;
-        //         newAct.nAct = ACT_PASS;
-        //         newAct.strTarget = true;
-        //         Robot.arAct.push_back(newAct);
-        //         Robot.nLitterCount++;
-        //         bAction = true;
-        //         TimerAct = TimerAct_READY;
-        //     }
-        // }
-
         if(bAction == true)
         {
             cout << "[TaskPub]任务确认 展示任务队列..." << endl;
@@ -229,7 +170,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "main");
     ros::NodeHandle nh;
-    ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect",10,&EntranceCB);
+    ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect", 10, &EntranceCB);
     Init_keywords();
     Robot.Init();
     ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
@@ -244,6 +185,7 @@ int main(int argc, char** argv)
             {
                 Robot.Enter();
                 Robot.Speak("我已经进入场地了");
+                //Robot.bArrive = false;
                 sleep(3);
                 nState = STATE_WAIT_CMD;
             }
@@ -253,7 +195,18 @@ int main(int argc, char** argv)
         {
             cout << "check_A" <<endl;
             bool main_finish = Robot.Main();
-            nState = STATE_WAIT_CMD;
+
+            if (Robot.ARACT_IT == Robot.arAct.end())
+            {
+                std::advance(Robot.ARACT_IT, -(Robot.nCurActIndex - 1));//指回0
+                cout << "A_nCurActIndex: " << Robot.nCurActIndex << endl;
+                nState = STATE_WAIT_CMD;
+            }
+            else
+            {
+                std::advance(Robot.ARACT_IT, -(Robot.nCurActIndex - 1));//指回0
+            }
+            
             //Robot.Reset();
         }
 
@@ -269,37 +222,3 @@ int main(int argc, char** argv)
     }
     return 0; 
 }
-
-//伪函数
-// void VoiceCB(msg)
-// {
-//     string strListen;
-//     strListen = findWord(msg,robot.arkHELLO)
-//     if(strListen.lenth() >0 )
-//     {
-//         arAct newAct;
-//         newAct.target = ACT_RECORD;
-//         robot.aract.push_back(newAct);
-//         bAction = true;
-//     }
-//     strListen = findword(msg,robot.arkOBj)
-//     if(strListen.lengh()>0)
-//     {
-//         arAct newACt;
-//         nweACt.target = obj;
-//         robot.aract.push_back(newAct);
-//         bCheck = true
-//     }
-
-//     if(bcheck == true)
-//     {
-//         robot.speak(strListen)
-//         robot.spaek(确定)
-//         if(确定 == false)
-//         robot.reset();
-//         else
-//         nState = STATE_ACTION
-
-//     }
-    
-// }
