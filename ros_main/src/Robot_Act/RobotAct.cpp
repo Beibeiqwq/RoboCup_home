@@ -1,25 +1,40 @@
 #include "RobotAct.h"
+/**********************************************************/
+/*                       定义区                            */
+/**********************************************************/
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 static string strToSpeak = "";
 static string strKeyWord = "";
 
-/*---------------别名定义区---------------*/
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+int RobotAct::nPeopleCount = 0;
+int RobotAct::nLitterCount = 0;
+int RobotAct::nPlaceCount  = 1;
 
+/**********************************************************/
+/*                       初始化                            */
+/**********************************************************/
+
+/// @brief 构造函数
 RobotAct::RobotAct()
 {
     nCurActIndex = 0;
-    nCurActCode = -1;
+    nCurActCode  = -1;
+    _nActionStage = 1;
+
     strListen = "";
     bGrabDone = false;
     bPassDone = false;
     strFace = "";
 }
 
+/// @brief 析构函数
 RobotAct::~RobotAct()
 {
 }
 
+/// @brief 机器人初始化
 void RobotAct::Init()
 {
     ros::NodeHandle n("~");
@@ -32,12 +47,12 @@ void RobotAct::Init()
     n.param<string>("place4", arKWPlacement[4], "dining room");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
-    n.param<float>("PID_Forward", _PID_Forward, 0.0002);
-    n.param<float>("PID_Turn", _PID_Turn, 0.0003);
+    n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
+    n.param<float> ("PID_Turn", _PID_Turn, 0.0003);
     /*---------------ROS初始化---------------*/
-    sub_yolo         = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5CB, this);
-    sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
-    sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCB, this);
+    sub_yolo         = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5Callback, this);
+    sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCallback, this);
+    sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCallback, this);
     grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
     pass_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
     client_speak     = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
@@ -55,69 +70,12 @@ void RobotAct::Init()
     cin >> _check_flag;
 }
 
-// 抓取开关
-void RobotAct::GrabSwitch(bool inActive)
-{
-    std_msgs::String behavior_msg;
-    if (inActive == true)
-    {
-        behavior_msg.data = "grab start";
-        behaviors_pub.publish(behavior_msg);
-    }
-    else
-    {
-        behavior_msg.data = "grab stop";
-        behaviors_pub.publish(behavior_msg);
-    }
-}
-// 递给开关
-void RobotAct::PassSwitch(bool inActive)
-{
-    std_msgs::String behavior_msg;
-    if (inActive == true)
-    {
-        behavior_msg.data = "pass start";
-        behaviors_pub.publish(behavior_msg);
-    }
-    else
-    {
-        behavior_msg.data = "pass stop";
-        behaviors_pub.publish(behavior_msg);
-    }
-}
-// 新航点添加
-void RobotAct::AddNewWaypoint(string inStr)
-{
-    tf::TransformListener listener;
-    tf::StampedTransform transform;
-    try
-    {
-        listener.waitForTransform("/map", "/base_footprint", ros::Time(0), ros::Duration(10.0));
-        listener.lookupTransform("/map", "/base_footprint", ros::Time(0), transform);
-    }
-    catch (tf::TransformException &ex)
-    {
-        ROS_ERROR("[lookupTransform] %s", ex.what());
-        return;
-    }
 
-    float tx = transform.getOrigin().x();
-    float ty = transform.getOrigin().y();
-    tf::Stamped<tf::Pose> p = tf::Stamped<tf::Pose>(tf::Pose(transform.getRotation(), tf::Point(tx, ty, 0.0)), ros::Time::now(), "map");
-    geometry_msgs::PoseStamped new_pos;
-    tf::poseStampedTFToMsg(p, new_pos);
-
-    waterplus_map_tools::Waypoint new_waypoint;
-    new_waypoint.name = inStr;
-    new_waypoint.pose = new_pos.pose;
-    add_waypoint_pub.publish(new_waypoint);
-
-    ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
-}
-
+/**********************************************************/
+/*                       状态机                            */
+/**********************************************************/
 static int nLastActCode = -1;
 static geometry_msgs::Twist vel_cmd;
-// 主状态机
 bool RobotAct::Main()
 {
     // 任务个数
@@ -275,12 +233,15 @@ bool RobotAct::Main()
             if (bPeopleFound == true)
             {
                 FaceDetect();
-                if(bFaceDetect == true)
-                {
-                    bOpenpose = true;
-                    ActionDetect();
-                    nCurActIndex++;
-                }
+                // if(bFaceDetect == true)
+                // {
+                //     bOpenpose = true;
+                //     ActionDetect();
+                //     nCurActIndex++;
+                // }
+                sleep(1);
+                ActionDetect();
+                nCurActIndex++;
             }
         }
         break;
@@ -298,88 +259,16 @@ void RobotAct::Reset()
     strToSpeak = "";
     nCurActIndex = 0;
     nLastActCode = 0;
+    //bArrive = false;
     arAct.clear();
 }
 
-string RobotAct::GetToSpeak()
-{
-    string strRet = strToSpeak;
-    strToSpeak = "";
-    return strRet;
-}
+/**********************************************************/
+/*                       回调函数                          */
+/**********************************************************/
 
-string ActionText(stAct *inAct)
-{
-    string ActText = "";
-    if (inAct->nAct == ACT_GOTO)
-    {
-        ActText = "去往地点 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_FIND_OBJ)
-    {
-        ActText = "搜索物品 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_GRAB)
-    {
-        ActText = "抓取物品 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_PASS)
-    {
-        ActText = "把物品递给 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_SPEAK)
-    {
-        ActText = "说话 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_MOVE)
-    {
-        ActText = "移动 ( ";
-        std::ostringstream stringStream;
-        stringStream << inAct->fLinear_x << " , " << inAct->fLinear_y << " ) - " << inAct->fAngular_z;
-        std::string retStr = stringStream.str();
-        ActText += retStr;
-    }
-    if (inAct->nAct == ACT_ADD_WAYPOINT)
-    {
-        ActText = "添加航点 ";
-        std::ostringstream stringStream;
-        // stringStream << inAct->fFollowDist;
-        std::string retStr = stringStream.str();
-        ActText += retStr;
-    }
-    if (inAct->nAct == ACT_FIND_PERSON)
-    {
-        ActText = "寻找人物 ";
-        ActText += inAct->strTarget;
-    }
-    if (inAct->nAct == ACT_ACTION_DETECT)
-    {
-        ActText = "动作识别 ";
-        ActText += inAct->strTarget;
-    }
-    return ActText;
-}
-
-void RobotAct::ShowActs()
-{
-    printf("\n*********************************************\n");
-    printf("显示行为队列:\n");
-    int nNumOfAct = arAct.size();
-    stAct tmpAct;
-    for (int i = 0; i < nNumOfAct; i++)
-    {
-        tmpAct = arAct[i];
-        string act_txt = ActionText(&tmpAct);
-        printf("行为 %d : %s\n", i + 1, act_txt.c_str());
-    }
-    printf("*********************************************\n\n");
-}
-
+/// @brief 抓取结果
+/// @param res 
 void RobotAct::GrabResultCallback(const std_msgs::String::ConstPtr &res)
 {
     int nFindIndex = 0;
@@ -390,6 +279,8 @@ void RobotAct::GrabResultCallback(const std_msgs::String::ConstPtr &res)
     }
 }
 
+/// @brief 递给结果
+/// @param res 
 void RobotAct::PassResultCallback(const std_msgs::String::ConstPtr &res)
 {
     int nFindIndex = 0;
@@ -400,23 +291,9 @@ void RobotAct::PassResultCallback(const std_msgs::String::ConstPtr &res)
     }
 }
 
-/// @brief 机器人速度发布
-/// @param inVx 向前/后移动速度
-/// @param inVy 向左/右移动速度
-/// @param inTz 旋转角速度
-void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
-{
-    geometry_msgs::Twist vel_cmd;
-    vel_cmd.linear.x = VelFixed(inVx, _vel_max);
-    vel_cmd.linear.y = VelFixed(inVy, _vel_max);
-    vel_cmd.angular.z = VelFixed(inTz, _vel_max);
-    cout << "设置机器人速度为" << "X:" << inVx << "Y:" << inVy << "Z:" << inTz << endl;
-    speed_pub.publish(vel_cmd);
-}
-
 /// @brief YOLO回调
 /// @param msg
-void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
+void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
 {
     //cout << "[YOLOV5CB]:接收到Yolov5数据" << endl;
     YOLO_BBOX.clear();
@@ -511,7 +388,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
 }
 
 /// @brief OpenPose回调
-void RobotAct::OpenPoseCB(const std_msgs::String::ConstPtr &msg)
+void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
 {
     cout << "[OpenPoseCB]接收到OpenPose数据" << endl;
     string strAction;
@@ -524,6 +401,168 @@ void RobotAct::OpenPoseCB(const std_msgs::String::ConstPtr &msg)
             GlobalstrAction = strAction;
         }
     }
+}
+
+/// @brief 人脸识别
+/// @param msg 
+void RobotAct::FaceRecogCallback(const std_msgs::String::ConstPtr& msg)
+{
+    strFace = msg->data;
+}
+
+/// @brief 机器人对话
+/// @param req 
+/// @param resp 
+/// @return 
+bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
+{
+    if(bKeyVoice == false)
+        return false;
+    printf("识别到: %s\n", req.data.c_str());
+    std::string voice_txt = req.data;
+    if (voice_txt.find("抓取") != std::string::npos)
+    {
+        Speak("请在我抬起手臂后将物品放置在我的抓取区域");
+        Raise_arm();
+        sleep(5);
+        Speak("手臂已抬起，请确认是否放置完成");
+    }
+    if (voice_txt.find("确认") != std::string::npos)
+    {
+        Speak("好的，我将进行抓取 请小心");
+        sleep(2);
+        Grab_arm();
+    }
+    resp.success = true;
+    return resp.success;
+}
+
+/**********************************************************/
+/*                   程序功能区                             */
+/**********************************************************/
+
+/// @brief 程序参数打印
+void RobotAct::Parameter_Check()
+{
+    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>> Parameter_Check <<<<<<<<<<<<<<<<<<<<<<<" << endl;
+    cout << "Yaml Name:" << _name_yaml << endl;
+    cout << "Enter Coord:" << _coord_cmd << endl;
+    cout << "Exit  Coord:" << _coord_exit << endl;
+    cout << "Place1:" << arKWPlacement[1] << endl;
+    cout << "Place2:" << arKWPlacement[2] << endl;
+    cout << "Place3:" << arKWPlacement[3] << endl;
+    cout << "Place4:" << arKWPlacement[4] << endl;
+    cout << "PID_ForWard:" << _PID_Forward << endl;
+    cout << "PID_Turn:" << _PID_Turn << endl;
+    cout << ">>>>>>>>>>>>>>>>>>>> Please check the parameter <<<<<<<<<<<<<<<<<<" << endl;
+}
+
+/// @brief 状态打印
+/// @param inAct 
+/// @return 
+string ActionText(stAct *inAct)
+{
+    string ActText = "";
+    if (inAct->nAct == ACT_GOTO)
+    {
+        ActText = "去往地点 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_FIND_OBJ)
+    {
+        ActText = "搜索物品 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_GRAB)
+    {
+        ActText = "抓取物品 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_PASS)
+    {
+        ActText = "把物品递给 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_SPEAK)
+    {
+        ActText = "说话 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_MOVE)
+    {
+        ActText = "移动 ( ";
+        std::ostringstream stringStream;
+        stringStream << inAct->fLinear_x << " , " << inAct->fLinear_y << " ) - " << inAct->fAngular_z;
+        std::string retStr = stringStream.str();
+        ActText += retStr;
+    }
+    if (inAct->nAct == ACT_ADD_WAYPOINT)
+    {
+        ActText = "添加航点 ";
+        std::ostringstream stringStream;
+        // stringStream << inAct->fFollowDist;
+        std::string retStr = stringStream.str();
+        ActText += retStr;
+    }
+    if (inAct->nAct == ACT_FIND_PERSON)
+    {
+        ActText = "寻找人物 ";
+        ActText += inAct->strTarget;
+    }
+    if (inAct->nAct == ACT_ACTION_DETECT)
+    {
+        ActText = "动作识别 ";
+        ActText += inAct->strTarget;
+    }
+    return ActText;
+}
+
+/// @brief 展示状态
+void RobotAct::ShowActs()
+{
+    printf("\n*********************************************\n");
+    printf("显示行为队列:\n");
+    int nNumOfAct = arAct.size();
+    stAct tmpAct;
+    for (int i = 0; i < nNumOfAct; i++)
+    {
+        tmpAct = arAct[i];
+        string act_txt = ActionText(&tmpAct);
+        printf("行为 %d : %s\n", i + 1, act_txt.c_str());
+    }
+    printf("*********************************************\n\n");
+}
+
+/// @brief 说话函数（废弃）
+/// @return 
+string RobotAct::GetToSpeak()
+{
+    string strRet = strToSpeak;
+    strToSpeak = "";
+    return strRet;
+}
+
+/// @brief 寻找关键词 YOLO版
+/// @param inSentence 传入的句子 -- YoloV5 Node中
+/// @param arWord     关键词    -- Init_Keywords中
+/// @return 得到的关键词
+string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord)
+{
+    string strRes = "";
+    int nNum = arWord.size();
+    for (const auto &bbox : YOLO_BBOX)
+    {
+        for (int j = 0; j < nNum; j++)
+        {
+            int tmpIndex = bbox.name.find(arWord[j]);
+            if (tmpIndex >= 0)
+            {
+                strRes = arWord[j];
+                break;
+            }
+        }
+    }
+    return strRes;
 }
 
 /// @brief 寻找关键词 字符串版
@@ -544,6 +583,69 @@ string RobotAct::FindWord(string inSentence, vector<string> &arWord)
         }
     }
     return strRes;
+}
+
+/**********************************************************/
+/*                   机器人功能区                           */
+/**********************************************************/
+
+/// @brief 航点添加
+/// @param inStr 
+void RobotAct::AddNewWaypoint(string inStr)
+{
+    tf::TransformListener listener;
+    tf::StampedTransform transform;
+    try
+    {
+        listener.waitForTransform("/map", "/base_footprint", ros::Time(0), ros::Duration(10.0));
+        listener.lookupTransform("/map", "/base_footprint", ros::Time(0), transform);
+    }
+    catch (tf::TransformException &ex)
+    {
+        ROS_ERROR("[lookupTransform] %s", ex.what());
+        return;
+    }
+
+    float tx = transform.getOrigin().x();
+    float ty = transform.getOrigin().y();
+    tf::Stamped<tf::Pose> p = tf::Stamped<tf::Pose>(tf::Pose(transform.getRotation(), tf::Point(tx, ty, 0.0)), ros::Time::now(), "map");
+    geometry_msgs::PoseStamped new_pos;
+    tf::poseStampedTFToMsg(p, new_pos);
+
+    waterplus_map_tools::Waypoint new_waypoint;
+    new_waypoint.name = inStr;
+    new_waypoint.pose = new_pos.pose;
+    add_waypoint_pub.publish(new_waypoint);
+
+    ROS_WARN("[New Waypoint] %s ( %.2f , %.2f )", new_waypoint.name.c_str(), tx, ty);
+}
+
+/// @brief 机器人速度发布
+/// @param inVx 向前/后移动速度
+/// @param inVy 向左/右移动速度
+/// @param inTz 旋转角速度
+void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
+{
+    geometry_msgs::Twist vel_cmd;
+    vel_cmd.linear.x = VelFixed(inVx, _vel_max);
+    vel_cmd.linear.y = VelFixed(inVy, _vel_max);
+    vel_cmd.angular.z = VelFixed(inTz, _vel_max);
+    cout << "设置机器人速度为" << "X:" << inVx << "Y:" << inVy << "Z:" << inTz << endl;
+    speed_pub.publish(vel_cmd);
+}
+
+/// @brief 机器人速度修正
+/// @param inVel 输入速度
+/// @param inMax 最大速度
+/// @return 修正后的速度
+float RobotAct::VelFixed(float inVel, float inMax)
+{
+    float retVel = inVel;
+    if (retVel > inMax)
+        retVel = inMax;
+    if (retVel < -inMax)
+        retVel = -inMax;
+    return retVel;
 }
 
 /// @brief 航点导航
@@ -593,13 +695,6 @@ bool RobotAct::Goto(string inStr)
     }
 }
 
-/// @brief 出门
-void RobotAct::Exit()
-{
-    cout << "[RobotAct]正在前往出门地点...." << endl;
-    Goto(_coord_exit);
-}
-
 /// @brief 进门
 void RobotAct::Enter()
 {
@@ -607,36 +702,83 @@ void RobotAct::Enter()
     Goto(_coord_cmd);
 }
 
-/// @brief 程序参数打印
-void RobotAct::Parameter_Check()
+/// @brief 出门
+void RobotAct::Exit()
 {
-    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>> Parameter_Check <<<<<<<<<<<<<<<<<<<<<<<" << endl;
-    cout << "Yaml Name:" << _name_yaml << endl;
-    cout << "Enter Coord:" << _coord_cmd << endl;
-    cout << "Exit  Coord:" << _coord_exit << endl;
-    cout << "Place1:" << arKWPlacement[1] << endl;
-    cout << "Place2:" << arKWPlacement[2] << endl;
-    cout << "Place3:" << arKWPlacement[3] << endl;
-    cout << "Place4:" << arKWPlacement[4] << endl;
-    cout << "PID_ForWard:" << _PID_Forward << endl;
-    cout << "PID_Turn:" << _PID_Turn << endl;
-    cout << ">>>>>>>>>>>>>>>>>>>> Please check the parameter <<<<<<<<<<<<<<<<<<" << endl;
+    cout << "[RobotAct]正在前往出门地点...." << endl;
+    Goto(_coord_exit);
 }
 
-/// @brief 机器人速度修正
-/// @param inVel 输入速度
-/// @param inMax 最大速度
-/// @return 修正后的速度
-float RobotAct::VelFixed(float inVel, float inMax)
+/// @brief 抓取开关
+/// @param inActive 
+void RobotAct::GrabSwitch(bool inActive)
 {
-    float retVel = inVel;
-    if (retVel > inMax)
-        retVel = inMax;
-    if (retVel < -inMax)
-        retVel = -inMax;
-    return retVel;
+    std_msgs::String behavior_msg;
+    if (inActive == true)
+    {
+        behavior_msg.data = "grab start";
+        behaviors_pub.publish(behavior_msg);
+    }
+    else
+    {
+        behavior_msg.data = "grab stop";
+        behaviors_pub.publish(behavior_msg);
+    }
 }
 
+/// @brief 递给开关
+/// @param inActive 
+void RobotAct::PassSwitch(bool inActive)
+{
+    std_msgs::String behavior_msg;
+    if (inActive == true)
+    {
+        behavior_msg.data = "pass start";
+        behaviors_pub.publish(behavior_msg);
+    }
+    else
+    {
+        behavior_msg.data = "pass stop";
+        behaviors_pub.publish(behavior_msg);
+    }
+}
+
+/// @brief 机器人说话（考虑替换为xfyun）
+/// @param answer_txt 说话内容
+void RobotAct::Speak(const std::string &answer_txt)
+{
+    robot_voice::StringToVoice::Request req;
+    robot_voice::StringToVoice::Response resp;
+    req.data = answer_txt;
+    bool ok = client_speak.call(req, resp);
+    if (ok)
+    {
+        //printf("[Speak]send str2voice service success: %s", req.data.c_str());
+        cout << "[RobotAct]发送语音任务到 'str2voice' " << req.data << endl;
+    }
+    else
+    {
+        ROS_ERROR("[RobotAct]启动服务失败");
+    }
+}
+
+/// @brief 机械臂抬起
+void RobotAct::Raise_arm()
+{
+    cout << "正在抬起手臂...." << endl;
+}
+
+/// @brief 机械臂抓取
+void RobotAct::Grab_arm()
+{
+    cout << "正在抓取..." << endl;
+}
+
+/**********************************************************/
+/*                   机器人任务区                           */
+/**********************************************************/
+
+/// @brief 动作识别
 void RobotAct::ActionDetect()
 {
     cout << "[ActionDetect]动作识别开始...." << endl;
@@ -645,13 +787,11 @@ void RobotAct::ActionDetect()
     GlobalstrAction = "站立";
     if (_nActionStage == 4)
     {
-        _nActionStage = 1;
         bActionDetect = true;
         bOpenpose = false;
-        return;
+        _nActionStage = 1;
     }
-    if (_nActionStage == 0)
-        return;
+
     if (_nActionStage == 1)
     {
         Speak("请开始你的第一个动作");
@@ -676,81 +816,7 @@ void RobotAct::ActionDetect()
     }
 }
 
-/// @brief 机器人说话（考虑替换为xfyun）
-/// @param answer_txt 说话内容
-void RobotAct::Speak(const std::string &answer_txt)
-{
-    robot_voice::StringToVoice::Request req;
-    robot_voice::StringToVoice::Response resp;
-    req.data = answer_txt;
-    bool ok = client_speak.call(req, resp);
-    if (ok)
-    {
-        //printf("[Speak]send str2voice service success: %s", req.data.c_str());
-        cout << "[RobotAct]发送语音任务到 'str2voice' " << req.data << endl;
-    }
-    else
-    {
-        ROS_ERROR("[RobotAct]启动服务失败");
-    }
-}
-
-/// @brief 寻找关键词 YOLO版
-/// @param inSentence 传入的句子 -- YoloV5 Node中
-/// @param arWord     关键词    -- Init_Keywords中
-/// @return 得到的关键词
-string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord)
-{
-    string strRes = "";
-    int nNum = arWord.size();
-    for (const auto &bbox : YOLO_BBOX)
-    {
-        for (int j = 0; j < nNum; j++)
-        {
-            int tmpIndex = bbox.name.find(arWord[j]);
-            if (tmpIndex >= 0)
-            {
-                strRes = arWord[j];
-                break;
-            }
-        }
-    }
-    return strRes;
-}
-
-bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp)
-{
-    if(bKeyVoice == false)
-        return false;
-    printf("识别到: %s\n", req.data.c_str());
-    std::string voice_txt = req.data;
-    if (voice_txt.find("抓取") != std::string::npos)
-    {
-        Speak("请在我抬起手臂后将物品放置在我的抓取区域");
-        Raise_arm();
-        sleep(5);
-        Speak("手臂已抬起，请确认是否放置完成");
-    }
-    if (voice_txt.find("确认") != std::string::npos)
-    {
-        Speak("好的，我将进行抓取 请小心");
-        sleep(2);
-        Grab_arm();
-    }
-    resp.success = true;
-    return resp.success;
-}
-
-void RobotAct::Raise_arm()
-{
-    cout << "正在抬起手臂...." << endl;
-}
-
-void RobotAct::Grab_arm()
-{
-    cout << "正在抓取..." << endl;
-}
-
+/// @brief 物品识别
 void RobotAct::ObjDetect()
 {
     cout << "开始识别物体" << endl;
@@ -763,13 +829,7 @@ void RobotAct::ObjDetect()
     }
 }
 
-void RobotAct::FaceRecogCB(const std_msgs::String::ConstPtr& msg)
-{
-    cout << "[RobotAct]FaceRecogCB: " << msg->data << endl;
-    strFace = msg->data;
-    cout << msg->data << endl;
-}
-
+/// @brief 人脸识别
 void RobotAct::FaceDetect()
 {
     cout << "[RobotAct]FaceDetect" << endl;
@@ -784,7 +844,7 @@ void RobotAct::FaceDetect()
     {
         Speak("你好，林文俊");
         bFaceDetect = true;
-        return;
+        //return;
     }
     if (strFace.find("wsx") != std::string::npos)
     {
@@ -800,4 +860,37 @@ void RobotAct::FaceDetect()
     {
         bFaceDetect = false;
     }
+}
+
+/**********************************************************/
+/*                   标志位返回                             */
+/**********************************************************/
+bool RobotAct::GetFlag_PeopleFound()
+{
+    return bPeopleFound;
+}
+
+bool RobotAct::GetFlag_ObjectFound()
+{
+    return bObjectFound;
+}
+
+bool RobotAct::GetResult_FaceRecog()
+{
+    return bFaceDetect;
+}
+
+bool RobotAct::GetResult_ActionDetect()
+{
+    return bActionDetect;
+}
+
+bool RobotAct::GetResult_Grab()
+{
+    return bGrabDone;
+}
+
+bool RobotAct::GetResult_Pass()
+{
+    return bPassDone;
 }

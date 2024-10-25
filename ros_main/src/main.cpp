@@ -104,23 +104,24 @@ void MainCallback(const ros::TimerEvent &e)
     if (nState == STATE_WAIT_CMD)
     {
         bool bAction = false;
-        if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
+        if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) && Robot.GetResult_Pass() == true)
             nState = STATE_GOTO_EXIT;
 
         if (TimerAct == TimerAct_READY)
         {
-            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[Robot.nPlaceCount] << endl;
+            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[RobotAct::nPlaceCount] << endl;
             stAct newAct;
             newAct.nAct = ACT_GOTO;
-            newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
+            newAct.strTarget = Robot.arKWPlacement[RobotAct::nPlaceCount++];
             Robot.arAct.push_back(newAct);
             bAction = true;
             TimerAct = TimerAct_FIND_PERSON;
-        }
+        } 
 
         if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive == true)
         {
-            if (!Robot.bPeopleFound) //在回调函数中实时更新
+            //Robot.bArrive =false;
+            if (!Robot.GetFlag_PeopleFound()) //在回调函数中实时更新
             {
                 cout << "[TaskPub]发布任务: 寻找人物" << endl;
                 stAct newAct;
@@ -152,15 +153,19 @@ void MainCallback(const ros::TimerEvent &e)
                     Robot.arAct.push_back(newAct);
                     Robot._bFixView_ok = false;
                     bAction = true;
+                    TimerAct = TimerAct_FIND_OBJ;
                 }
-                //bAction = true;
-                TimerAct = TimerAct_FIND_OBJ;
             }
         }
+        cout << "timeact" << TimerAct << endl;
+        cout << "action"  << Robot.GetResult_ActionDetect()<< endl;
+        cout << "face"    << Robot.GetResult_FaceRecog()   << endl;
+        
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ && Robot.bActionDetect == true && Robot.bFaceDetect == true)
+        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true)
         {
-            if (!Robot.bObjectFound && !Robot.bGrabDone)
+            cout << "22222222" << endl;
+            if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab())
             {
                 cout << "[TaskPub]发布任务: 物品寻找" << endl;
                 stAct newAct;
@@ -181,9 +186,9 @@ void MainCallback(const ros::TimerEvent &e)
             bAction = true;
         }
 
-        if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.bGrabDone == true)
+        if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.GetResult_Grab() == true)
         {
-            if(Robot.bGrabDone == true)
+            if(Robot.GetResult_Grab() == true)
             {
                 cout << "[TaskPub]发布任务: 前往垃圾桶" << endl;
                 stAct newAct;
@@ -200,16 +205,16 @@ void MainCallback(const ros::TimerEvent &e)
             bAction =true;
         }
 
-        if(TimerAct == TimerAct_PASS && Robot.bArrive == true && Robot.bGrabDone == true)
+        if(TimerAct == TimerAct_PASS && Robot.bArrive == true && Robot.GetResult_Grab() == true)
         {
-            if(Robot.bGrabDone == true && Robot.bPassDone != true)
+            if(Robot.GetResult_Grab() == true && Robot.GetResult_Pass() != true)
             {
                 cout << "[TaskPub]发布任务: 丢弃垃圾" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_PASS;
                 newAct.strTarget = true;
                 Robot.arAct.push_back(newAct);
-                Robot.nLitterCount++;
+                RobotAct::nLitterCount++;
                 bAction = true;
                 TimerAct = TimerAct_READY;
             }
