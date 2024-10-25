@@ -53,19 +53,27 @@ void Init_keywords()
 
     // 人名关键词
     Robot.arKWPerson.push_back("Jack");
+    Robot.arKWPerson.push_back("John");
+    Robot.arKWPerson.push_back("Allen");
+    Robot.arKWPerson.push_back("Richard");
     Robot.arKWPerson.push_back("Mike");
+    Robot.arKWPerson.push_back("Grace");
+    Robot.arKWPerson.push_back("Linda");
     Robot.arKWPerson.push_back("Lily");
+    Robot.arKWPerson.push_back("Lucy");
+    Robot.arKWPerson.push_back("Jennier");
 
     // 行为关键词
-    Robot.arKWAction.push_back("stand");
-    Robot.arKWAction.push_back("down");
-    Robot.arKWAction.push_back("lay");
-    Robot.arKWAction.push_back("walk");
-    Robot.arKWAction.push_back("make telephone");
-    Robot.arKWAction.push_back("raise hand");
-    Robot.arKWAction.push_back("shake hand");
-    Robot.arKWAction.push_back("shake both hands");
-    Robot.arKWAction.push_back("smoking");
+    Robot.arKWAction.push_back("站立");
+    Robot.arKWAction.push_back("打电话");
+    Robot.arKWAction.push_back("行走");
+    Robot.arKWAction.push_back("摔倒");
+    Robot.arKWAction.push_back("蹲起");
+    Robot.arKWAction.push_back("挥手");
+    Robot.arKWAction.push_back("举手");
+    Robot.arKWAction.push_back("挥双手");
+    Robot.arKWAction.push_back("平躺");
+    Robot.arKWAction.push_back("双手交叉");
 
     Robot.strPerson.push_back("Person");
     Robot.strPerson.push_back("person");
@@ -143,14 +151,14 @@ void MainCallback(const ros::TimerEvent &e)
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     Robot._bFixView_ok = false;
-                    //bAction = true;
+                    bAction = true;
                 }
-                bAction = true;
+                //bAction = true;
                 TimerAct = TimerAct_FIND_OBJ;
             }
         }
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ && Robot.bActionDetect == true)
+        if (TimerAct == TimerAct_FIND_OBJ && Robot.bActionDetect == true && Robot.bFaceDetect == true)
         {
             if (!Robot.bObjectFound && !Robot.bGrabDone)
             {

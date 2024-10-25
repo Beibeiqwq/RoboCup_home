@@ -37,6 +37,7 @@ void RobotAct::Init()
     /*---------------ROS初始化---------------*/
     sub_yolo         = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5CB, this);
     sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCB, this);
+    sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCB, this);
     grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
     pass_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
     client_speak     = n.serviceClient<robot_voice::StringToVoice>("/str2voice");
@@ -47,7 +48,6 @@ void RobotAct::Init()
     yolo_pub         = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub    = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
-    sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCB, this);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -257,7 +257,7 @@ bool RobotAct::Main()
             {
                 Speak("找不到物品");
                 cout << "!OBJECT_FOUND!!!!!" << endl;
-                SetSpeed(0, 0, 0.2);//方案一
+                //SetSpeed(0, 0, 0.2);//方案一
                 //方案二 遍历房间内航点
                 //nCurActIndex++;
             }
@@ -455,6 +455,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             else
             {
                 strDetect = msg.name[i];
+                bPeopleFound = false;
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -653,22 +654,21 @@ void RobotAct::ActionDetect()
         return;
     if (_nActionStage == 1)
     {
-        Speak("识别到第一个动作");
-        sleep(1);
-        Speak(GlobalstrAction);
+        Speak("请开始你的第一个动作");
         sleep(2);
+        Speak("识别到第一个动作");
+        Speak(GlobalstrAction);
         _nActionStage = 2;
     }
     if(_nActionStage == 2)
     {
         Speak("你可以展示下一个动作了");
-        sleep(4);
+        sleep(2);
         _nActionStage = 3;
     }
     if(_nActionStage == 3)
     {
         Speak("识别到第二个动作");
-        sleep(1);
         Speak(GlobalstrAction);
         //bActionDetect = true;
         nPeopleCount++;
@@ -754,6 +754,7 @@ void RobotAct::Grab_arm()
 void RobotAct::ObjDetect()
 {
     cout << "开始识别物体" << endl;
+    Speak("开始识别物体"); // 测试
     string strObject;
     strObject = FindWord(strDetect, arKWObject);
     if (strObject.length() > 0)
@@ -776,24 +777,23 @@ void RobotAct::FaceDetect()
     //     return;
     if (strFace.find("gjy") != std::string::npos)
     {
-        Speak("你好，你是郭嘉悦");
+        Speak("你好，郭嘉悦");
         bFaceDetect = true;
     }
     if (strFace.find("lwj") != std::string::npos)
     {
-        Speak("你好，你是林文俊");
-        sleep(2);
+        Speak("你好，林文俊");
         bFaceDetect = true;
         return;
     }
     if (strFace.find("wsx") != std::string::npos)
     {
-        Speak("你好，你是王烁心");
+        Speak("你好，王烁心");
         bFaceDetect = true;
     }
     if (strFace.find("wzy") != std::string::npos)
     {
-        Speak("你好，你是王则与大厦比");
+        Speak("你好，王则与");
         bFaceDetect = true;
     }
     else
