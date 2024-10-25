@@ -98,7 +98,7 @@ void MainCallback(const ros::TimerEvent &e)
 {
     if (nState == STATE_WAIT_CMD)
     {
-        bool bAction = false;
+        bool bAction = false;//是否压完任务
         if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3) && Robot.bPassDone == true)
             nState = STATE_GOTO_EXIT;
 
@@ -109,15 +109,24 @@ void MainCallback(const ros::TimerEvent &e)
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[Robot.nPlaceCount++];
             Robot.arAct.push_back(newAct);
-            cout << "1" << endl;
-            if (Robot.nPeopleCount != 3)
+            // for (auto it = Robot.arAct.begin(); it != Robot.arAct.end(); ++it)
+            // {
+            //     cout << "*" << endl;
+            //     cout<<  it->nAct  << endl;
+            // }
+            
+            if (Robot.bPeopleFound == false)
             {
                 TimerAct = TimerAct_READY;
-                cout << "2" << endl;
+                cout << "check_2" << endl;
                 bAction = true;
             }
-            TimerAct = TimerAct_FIND_PERSON;
-            bAction = true;
+            else
+            {
+                TimerAct = TimerAct_FIND_PERSON;
+                bAction = true;
+            }
+
         }
 
         if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive ==true)
@@ -242,8 +251,9 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
+            cout << "check_A" <<endl;
             bool main_finish = Robot.Main();
-            //nState = STATE_WAIT_CMD;
+            nState = STATE_WAIT_CMD;
             //Robot.Reset();
         }
 

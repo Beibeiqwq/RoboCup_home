@@ -8,8 +8,8 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 
 RobotAct::RobotAct()
 {
-    nCurActIndex = 0;
-    nCurActCode = -1;
+    nCurActIndex = 1;
+    nCurActCode = 0;
     strListen = "";
     bGrabDone = false;
     bPassDone = false;
@@ -116,34 +116,6 @@ void RobotAct::AddNewWaypoint(string inStr)
 //
 void RobotAct::AddNewWaypoint_yolo(string inStr)
 {
-    // tf::TransformListener listener;
-    // tf::StampedTransform transform;
-
-    // geometry_msgs::PointStamped objToKinect_pose;
-    // objToKinect_pose.header.frame_id = "/kinect2_ir_optical_frame";
-    // //recog_obj_pose.header.stamp = ros::Time();
-    // objToKinect_pose.point.x = tx;
-    // objToKinect_pose.point.y = ty;
-    // objToKinect_pose.point.z = tz;
-    // geometry_msgs::PointStamped objToMap_pose;
-    
-    // try
-    // {
-    //     listener.waitForTransform("/map", "/kinect2_ir_optical_frame", ros::Time(0), ros::Duration(10.0));
-    //     listener.lookupTransform("/map", "/" + inStr, ros::Time(0), transform);
-    //     listener.transformPoint("/map", objToKinect_pose, objToMap_pose);
-    // }
-    // catch (tf::TransformException &ex)
-    // {
-    //     ROS_ERROR("[lookupTransform] %s", ex.what());
-    //     return;
-    // }
-    // waterplus_map_tools::Waypoint new_waypoint;
-    // tf::poseStampedTFToMsg(, objToMap_pose);
-    // new_waypoint.name = inStr;
-    // new_waypoint.pose = objToMap_pose.pose;
-    // add_waypoint_pub.publish(new_waypoint);
-
     tf::TransformListener listener;
     tf::StampedTransform transform;
     try
@@ -178,6 +150,7 @@ static geometry_msgs::Twist vel_cmd;
 bool RobotAct::Main()
 {
     // 任务个数
+    cout << "check_3" << endl;
     int nNumOfAct = arAct.size();
     // 结束判定
     if (nCurActIndex >= nNumOfAct)
@@ -187,25 +160,30 @@ bool RobotAct::Main()
     // 语音识别的关键词
     int nKeyWord = -1;
     // 当前任务状态
-    // std::advance(ARACT_IT, nCurActIndex);
-    nCurActCode = ARACT_IT->nAct;
-    // std::advance(ARACT_IT, -nCurActIndex);
-
+    std::advance(ARACT_IT, nCurActIndex);
+ 
+    nCurActCode = ARACT_IT->nAct;  
+    std::advance(ARACT_IT, -nCurActIndex);
+    cout << nCurActCode << endl;
     
     // nCurActIndex == 当前任务ID
     // nLastActCode == 上一个任务ID
     switch (nCurActCode)
     {
     case ACT_GOTO:
-        if (nLastActCode != ACT_GOTO)
+        if (nLastActCode != ACT_GOTO && bPeopleFound ==false)
         {
+            cout << "5" << endl;
             std::advance(ARACT_IT, nCurActIndex);
+            
             string StrGoto = ARACT_IT->strTarget;
+            
             std::advance(ARACT_IT, -nCurActIndex);
+            
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
             bArrive = Goto(StrGoto);
             nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
+            //std::advance(ARACT_IT, nCurActIndex);
         }
         break;
 
@@ -222,7 +200,7 @@ bool RobotAct::Main()
                 arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
             }  
             nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
+            // std::advance(ARACT_IT, nCurActIndex);
         }
         break;
     
@@ -233,44 +211,44 @@ bool RobotAct::Main()
             if (bContact == true)
             {
                 nCurActIndex++;
-                std::advance(ARACT_IT, nCurActIndex);
+                // std::advance(ARACT_IT, nCurActIndex);
             }
         }
 
 
-    case ACT_GRAB:
-        if (nLastActCode != ACT_GRAB)
-        {
-            printf("[RobotAct] %d - Grab %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            bGrabDone = false;
-            GrabSwitch(true);
-        }
-        if (bGrabDone == true)
-        {
-            printf("[RobotAct] %d - Grab %s done!\n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            GrabSwitch(false);
-            std::advance(ARACT_IT, -nCurActIndex);
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
-        }
-        break;
+    // case ACT_GRAB:
+    //     if (nLastActCode != ACT_GRAB)
+    //     {
+    //         printf("[RobotAct] %d - Grab %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         bGrabDone = false;
+    //         GrabSwitch(true);
+    //     }
+    //     if (bGrabDone == true)
+    //     {
+    //         printf("[RobotAct] %d - Grab %s done!\n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         GrabSwitch(false);
+    //         std::advance(ARACT_IT, -nCurActIndex);
+    //         nCurActIndex++;
+    //         std::advance(ARACT_IT, nCurActIndex);
+    //     }
+    //     break;
 
-    case ACT_PASS:
-        if (nLastActCode != ACT_PASS)
-        {
-            printf("[RobotAct] %d - Pass %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            bPassDone = false;
-            PassSwitch(true);
-        }
-        if (bPassDone == true)
-        {
-            printf("[RobotAct] %d - Pass %s done! \n", nCurActIndex, ARACT_IT->strTarget.c_str());
-            PassSwitch(false);
-            std::advance(ARACT_IT, -nCurActIndex);
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
-        }
-        break;
+    // case ACT_PASS:
+    //     if (nLastActCode != ACT_PASS)
+    //     {
+    //         printf("[RobotAct] %d - Pass %s\n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         bPassDone = false;
+    //         PassSwitch(true);
+    //     }
+    //     if (bPassDone == true)
+    //     {
+    //         printf("[RobotAct] %d - Pass %s done! \n", nCurActIndex, ARACT_IT->strTarget.c_str());
+    //         PassSwitch(false);
+    //         std::advance(ARACT_IT, -nCurActIndex);
+    //         nCurActIndex++;
+    //         std::advance(ARACT_IT, nCurActIndex);
+    //     }
+    //     break;
 
         // case ACT_LISTEN:
         //     if (nLastActCode != ACT_LISTEN)
@@ -488,6 +466,7 @@ void RobotAct::YOLOV5CB(const wpb_yolo5::BBox2D &msg)
             recv_BBOX.push_back(box_object);
             strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, arKWPerson);
+            bPeopleFound++;
             // if (Peoplename.length() > 0)
             // {
             //     nYoloPeople = i;

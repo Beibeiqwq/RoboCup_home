@@ -83,7 +83,7 @@ public:
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
 	/*--------------功能类---------------*/
-    std::list<stAct> arAct; 
+    std::list<stAct> arAct = { stAct{0, "0", 0.0, 0.0, 0.0, 0.0}};
 	
 	int nCurActIndex;
 	int nCurActCode;
@@ -175,7 +175,7 @@ private:
 	float _PID_Forward = 0;	   // 修正前进PID系数
 	float _PID_Turn = 0;	   // 修正转向PID系数
 	
-	
+ 	
 
 	bool bOpenpose = false;	   // 动作识别
 	/*---------------数组/容器区---------------*/

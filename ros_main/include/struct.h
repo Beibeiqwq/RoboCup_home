@@ -4,14 +4,14 @@
 using namespace std;
 #define ACT_REMOVE          0			//状态移除
 #define ACT_GOTO			1			//前往
-#define ACT_GRAB			2			//抓取
-#define ACT_PASS			3			//放开
-#define ACT_CONTACT			4			//交流
-
+#define ACT_FIND_PERSON		2			//找人
+#define ACT_CONTACT			3			//交流
+#define ACT_GRAB			4			//抓取
+#define ACT_PASS			5
 #define ACT_MOVE			6			//移动
 #define ACT_ADD_WAYPOINT	7			//添加航点
 #define ACT_FIND_OBJ        8			//物体识别
-#define ACT_FIND_PERSON     9			//找人
+
 
 typedef struct stAct
 {

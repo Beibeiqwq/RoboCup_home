@@ -19,7 +19,7 @@ parent_frame = "kinect2_ir_optical_frame"
 
 def yolov5_callback(data):
     global p,if_pcl_ready
-    tfp_info_pub = rospy.Publisher('tfpoint_topic', tfpoint, queeu_size = 10)
+    tfp_info_pub = rospy.Publisher('tfpoint_topic', tfpoint, queue_size = 10)
     obj_tf = tf.TransformBroadcaster()
     if(if_pcl_ready):
         bounding_boxes = data.bounding_boxes
@@ -47,7 +47,7 @@ def yolov5_callback(data):
             #obj_tf.sendTransform((z, -x, -y),tf.transformations.quaternion_from_euler(0, 0, 0),rospy.Time.now(),i.Class+str(id),parent_frame)
             obj_tf.sendTransform((x, y, z),tf.transformations.quaternion_from_euler(0, -math.pi/2, math.pi/2),rospy.Time.now(),i.Class+str(id),parent_frame)
             tfpoint_msg = tfpoint()
-            tfpoint_msg.name = data.bounding_boxes.Class
+            tfpoint_msg.name = data.class_name
             tfpoint_msg.tx = x
             tfpoint_msg.ty = y
             tfpoint_msg.tz = z
