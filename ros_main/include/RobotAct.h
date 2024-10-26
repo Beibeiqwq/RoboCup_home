@@ -46,6 +46,7 @@
 #include "xfyun_waterplus/IATSwitch.h"
 #include <waterplus_map_tools/GetWaypointByName.h>
 #include <robot_voice/StringToVoice.h>
+#include <sensor_msgs/JointState.h>
 
 /// @brief YOLOV5 BoundingBox2D 格式
 typedef struct BBox2D
@@ -68,6 +69,7 @@ public:
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
 	vector<string> strPerson;     // YOLO人识别
+	vector<string> objPlacement;  // 垃圾地点
 	/*--------------初始化---------------*/
 	RobotAct();
 	~RobotAct();
@@ -104,6 +106,7 @@ public:
 	void  Speak(const std::string &answer_txt);
 	void  Raise_arm();
 	void  Grab_arm();
+	void  Pass_arm();
     /*--------------机器任务--------------*/
 	void  ActionDetect();
 	void  ObjDetect();
@@ -116,7 +119,8 @@ public:
 	bool  GetResult_Grab();
 	bool  GetResult_Pass();
 	bool  GetResult_FixView();
-
+	string getActionFromOpenpose();
+	string getFaceFromFacerecog();
 	/*--------------静态变量--------------*/
 	static int nPeopleCount;	   // 人物计数
 	static int nLitterCount;	   // 垃圾计数
@@ -146,11 +150,16 @@ private:
 	ros::ServiceClient cliGetWPName;
 	ros::ServiceServer chatter_server_;
 	waterplus_map_tools::GetWaypointByName srvName;
+	ros::Publisher mani_ctrl_pub;
+	//ros::Publisher result_pub;
+	ros::Publisher ctrl_pub;
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   // 进门坐标
 	string _coord_exit; 	   // 出门坐标
 	string _name_yaml;         // 配置文件
+	sensor_msgs::JointState mani_ctrl_msg;
+	std_msgs::String ctrl_msg;
 
 	int _nActionStage = 1;	   // 动作计数
 	int nYoloPeople   = -1;	   // 人物编号

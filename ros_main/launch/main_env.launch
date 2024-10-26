@@ -185,7 +185,7 @@
       output="screen"
   />
   <!-- openpose节点 -->
-  
+  <include file="$(find ros_openpose)/launch/run.launch" />
   <!-- 抓取服务 -->
    <node pkg="wpb_home_behaviors" type="wpb_home_grab_server" name="wpb_home_grab_server">
     <param name="start" type="bool" value="false"/> 

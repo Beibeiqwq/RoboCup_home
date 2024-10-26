@@ -5,12 +5,19 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+
 static string strToSpeak = "";
 static string strKeyWord = "";
+
 bool RobotAct::bActionDetect = false;
 int  RobotAct::nPeopleCount = 0;
 int  RobotAct::nLitterCount = 0;
 int  RobotAct::nPlaceCount  = 1;
+
+static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_lift_offset = 0.0f;       //手臂抬起高度的补偿偏移量
+static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
+static float grab_gripper_value = 0.032;    //抓取物品时，手爪闭合后的手指间距
 
 /**********************************************************/
 /*                       初始化                            */
@@ -45,6 +52,10 @@ void RobotAct::Init()
     n.param<string>("place2", arKWPlacement[2], "kitchen");
     n.param<string>("place3", arKWPlacement[3], "bedroom");
     n.param<string>("place4", arKWPlacement[4], "dining room");
+    n.param<string>("obj1", objPlacement[1], "obj living room");
+    n.param<string>("obj2", objPlacement[2], "obj kitchen");
+    n.param<string>("obj3", objPlacement[3], "obj bedroom");
+    n.param<string>("obj4", objPlacement[4], "obj dining room");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
@@ -63,6 +74,18 @@ void RobotAct::Init()
     yolo_pub         = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub    = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
+    mani_ctrl_pub    = n.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
+    //result_pub       = n.advertise<std_msgs::String>("/wpb_home/grab_result", 30);
+
+    mani_ctrl_msg.name.resize(2);
+    mani_ctrl_msg.position.resize(2);
+    mani_ctrl_msg.velocity.resize(2);
+    mani_ctrl_msg.name[0] = "lift";
+    mani_ctrl_msg.name[1] = "gripper";
+    mani_ctrl_msg.position[0] = 0;
+    mani_ctrl_msg.velocity[0] = 0.5;     //升降速度(单位:米/秒)
+    mani_ctrl_msg.position[1] = 0.16;
+    mani_ctrl_msg.velocity[1] = 5;       //手爪开合角速度(单位:度/秒)
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -133,59 +156,6 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_SPEAK:
-        if (nLastActCode != ACT_SPEAK)
-        {
-            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            strToSpeak = arAct[nCurActIndex].strTarget;
-            std_msgs::String rosSpeak;
-            rosSpeak.data = strToSpeak;
-            speak_pub.publish(rosSpeak);
-            strToSpeak = "";
-            usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
-            nCurActIndex++;
-        }
-        break;
-
-        // case ACT_LISTEN:
-        //     if (nLastActCode != ACT_LISTEN)
-        //     {
-        //         printf("[RobotAct] %d - Listen %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-        //         strListen = "";
-        //         strKeyWord = arAct[nCurActIndex].strTarget;
-        //         int nDur = arAct[nCurActIndex].nDuration;
-        //         if (nDur < 3)
-        //         {
-        //             nDur = 3;
-        //         }
-        //         // 开始语音识别
-        //         srvIAT.request.active = true;
-        //         srvIAT.request.duration = nDur;
-        //         clientIAT.call(srvIAT);
-        //     }
-        //     nKeyWord = strListen.find(strKeyWord);
-        //     if (nKeyWord >= 0)
-        //     {
-        //         // 识别完毕,关闭语音识别
-        //         srvIAT.request.active = false;
-        //         clientIAT.call(srvIAT);
-        //         nCurActIndex++;
-        //     }
-        //     break;
-
-    case ACT_MOVE:
-        printf("[RobotAct] %d - Move ( %.2f , %.2f ) - %.2f\n", nCurActIndex, arAct[nCurActIndex].fLinear_x, arAct[nCurActIndex].fLinear_y, arAct[nCurActIndex].fAngular_z);
-        vel_cmd.linear.x = arAct[nCurActIndex].fLinear_x;
-        vel_cmd.linear.y = arAct[nCurActIndex].fLinear_y;
-        vel_cmd.linear.z = 0;
-        vel_cmd.angular.x = 0;
-        vel_cmd.angular.y = 0;
-        vel_cmd.angular.z = arAct[nCurActIndex].fAngular_z;
-        speed_pub.publish(vel_cmd);
-
-        usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
-        nCurActIndex++;
-        break;
 
     case ACT_ADD_WAYPOINT:
         if (nLastActCode != ACT_ADD_WAYPOINT)
@@ -318,6 +288,7 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
             recv_BBOX.push_back(box_object);
             //strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, strPerson);
+            string Objectname = FindWord(box_object.name, arKWObject);
             //Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
             {
@@ -329,10 +300,11 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
                 _nTargetX = 1024;
                 _nTargetY = 540;
             }
-            else
+            else if(Objectname.length() > 0)
             {
                 strDetect = msg.name[i];
-                bPeopleFound = false;
+                bObjectFound = true;
+                //bPeopleFound = false;
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -390,9 +362,9 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
 /// @brief OpenPose回调
 void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
 {
-    cout << "[OpenPoseCB]接收到OpenPose数据" << endl;
     string strAction;
     string strOpenpose = msg->data;
+    cout << "[OpenPoseCB]接收到OpenPose数据:" << strOpenpose << endl;
     if (bOpenpose == true) 
     {
         strAction = FindWord(strOpenpose, arKWAction);
@@ -722,16 +694,18 @@ void RobotAct::Exit()
 /// @param inActive 
 void RobotAct::GrabSwitch(bool inActive)
 {
-    std_msgs::String behavior_msg;
+    //std_msgs::String behavior_msg;
     if (inActive == true)
     {
-        behavior_msg.data = "grab start";
-        behaviors_pub.publish(behavior_msg);
+        //behavior_msg.data = "grab start";
+        //behaviors_pub.publish(behavior_msg);
+        bKeyVoice = true;
     }
     else
     {
-        behavior_msg.data = "grab stop";
-        behaviors_pub.publish(behavior_msg);
+        bKeyVoice = false;
+        //behavior_msg.data = "grab stop";
+        //behaviors_pub.publish(behavior_msg);
     }
 }
 
@@ -739,16 +713,18 @@ void RobotAct::GrabSwitch(bool inActive)
 /// @param inActive 
 void RobotAct::PassSwitch(bool inActive)
 {
-    std_msgs::String behavior_msg;
+    //std_msgs::String behavior_msg;
     if (inActive == true)
     {
-        behavior_msg.data = "pass start";
-        behaviors_pub.publish(behavior_msg);
+        // behavior_msg.data = "pass start";
+        // behaviors_pub.publish(behavior_msg);
+        Pass_arm();
+        bPassDone = true;
     }
     else
     {
-        behavior_msg.data = "pass stop";
-        behaviors_pub.publish(behavior_msg);
+        // behavior_msg.data = "pass stop";
+        // behaviors_pub.publish(behavior_msg);
     }
 }
 
@@ -775,12 +751,29 @@ void RobotAct::Speak(const std::string &answer_txt)
 void RobotAct::Raise_arm()
 {
     cout << "正在抬起手臂...." << endl;
+    // mani_ctrl_msg.position[0] = 0.5;
+    // mani_ctrl_msg.position[1] = 0.16;
+    mani_ctrl_msg.position[0] = 1.0;
+    mani_ctrl_msg.position[1] = -0.1;
+    mani_ctrl_pub.publish(mani_ctrl_msg);
+    ROS_WARN("[MANI_CTRL] lift= %.2f  gripper= %.2f ", mani_ctrl_msg.position[0], mani_ctrl_msg.position[1]);
 }
 
 /// @brief 机械臂抓取
 void RobotAct::Grab_arm()
 {
     cout << "正在抓取..." << endl;
+    mani_ctrl_msg.position[1] = grab_gripper_value; // 抓取物品手爪闭合宽度
+    mani_ctrl_pub.publish(mani_ctrl_msg);
+    bGrabDone = true;
+}
+
+void RobotAct::Pass_arm()
+{
+    cout << "正在递出..." << endl;
+    mani_ctrl_msg.position[1] = 0.16; // 递出物品手爪张开宽度
+    mani_ctrl_pub.publish(mani_ctrl_msg);
+    bPassDone = true;
 }
 
 /**********************************************************/
@@ -790,17 +783,43 @@ void RobotAct::Grab_arm()
 /// @brief 动作识别
 void RobotAct::ActionDetect()
 {
-    cout << "[ActionDetect]动作识别开始...." << endl;
-    Speak("动作识别开始");
-    sleep(2);
-    GlobalstrAction = "站立";
+    int StableCount     = 0;
+    int StableThreshold = 5;
+    string strCurrentAction = "";
+    string strLastAction    = "";
+    std::vector<std::string> actions;
 
+    cout << "[ActionDetect]动作识别开始...." << endl;
+    Speak("动作识别开始 请开始你的第一个动作");
+    sleep(2);
+    //GlobalstrAction = "站立";
+    while (true)
+    {
+        strCurrentAction = getActionFromOpenpose();
+        actions.push_back(strCurrentAction);
+
+        if(actions.size() > 1 && actions.back() == actions[actions.size() - 2])
+        {
+            StableCount++;
+        }
+        else
+        {
+            StableCount = 0;
+        }
+
+        if (StableCount > StableThreshold)
+        {
+            std::cout << "识别到连续动作：" << actions.back() << "，次数：" << StableCount << endl;
+            break;
+        }
+
+    }
+    
     if (_nActionStage == 1)
     {
-        Speak("请开始你的第一个动作");
-        sleep(2);
         Speak("识别到第一个动作");
-        Speak(GlobalstrAction);
+        Speak(strCurrentAction);
+        strLastAction = strCurrentAction;
         _nActionStage = 2;
     }
     if(_nActionStage == 2)
@@ -809,18 +828,17 @@ void RobotAct::ActionDetect()
         sleep(2);
         _nActionStage = 3;
     }
-    if(_nActionStage == 3)
+    if(_nActionStage == 3 && strCurrentAction != strLastAction)
     {
         Speak("识别到第二个动作");
-        Speak(GlobalstrAction);
-        //bActionDetect = true;
+        Speak(strCurrentAction);
         nPeopleCount++;
         _nActionStage = 4;
     }
     if (_nActionStage == 4)
     {
         bActionDetect = true;
-        cout << "Test:bActionDetect=" << bActionDetect << endl;
+        //cout << "Test:bActionDetect=" << bActionDetect << endl;
         bOpenpose = false;
         _nActionStage = 1;
     }
@@ -846,31 +864,56 @@ void RobotAct::FaceDetect()
     ROS_INFO("[Face]Recognized Face: %s ",strFace.c_str());
     // if(bPeopleFound == false)
     //     return;
-    if (strFace.find("gjy") != std::string::npos)
+    std::string CurrentFace = "";
+    std::vector<std::string> recognizedFaces;
+    int StableCount     = 0;
+    int StableThreshold = 5;
+    while(true)
+    {
+        CurrentFace = getFaceFromFacerecog();
+        recognizedFaces.push_back(CurrentFace);
+
+        if(recognizedFaces.size() > 1 && recognizedFaces.back() == recognizedFaces[recognizedFaces.size() - 2])
+        {
+            StableCount++;
+        }
+        else
+        {
+            StableCount = 0;
+        }
+
+        if (StableCount > StableThreshold)
+        {
+            std::cout << "识别到人脸：" << recognizedFaces.back() << endl;
+        }
+
+    }
+
+    if (CurrentFace.find("gjy") != std::string::npos)
     {
         Speak("你好，郭嘉悦");
         bFaceDetect = true;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
-    if (strFace.find("lwj") != std::string::npos)
+    if (CurrentFace.find("lwj") != std::string::npos)
     {
         Speak("你好，林文俊");
         bFaceDetect = true;
         //return;
     }
-    if (strFace.find("wsx") != std::string::npos)
+    if (CurrentFace.find("wsx") != std::string::npos)
     {
         Speak("你好，王烁心");
         bFaceDetect = true;
     }
-    if (strFace.find("wzy") != std::string::npos)
+    if (CurrentFace.find("wzy") != std::string::npos)
     {
         Speak("你好，王则与");
         bFaceDetect = true;
     }
-    else if (strFace.length() == 0)
+    else if (CurrentFace.length() == 0)
     {
-        cout << "[Face]未识别到 重新识别" << endl;
+        cout << "[Face]未识别到人脸 重新识别...." << endl;
         //bFaceDetect = false;
         FaceDetect();
     }
@@ -914,3 +957,12 @@ bool RobotAct::GetResult_FixView()
     return _bFixView_ok;
 }
 
+string RobotAct::getActionFromOpenpose()
+{
+    return GlobalstrAction;
+}
+
+string RobotAct::getFaceFromFacerecog()
+{
+    return strFace;
+}

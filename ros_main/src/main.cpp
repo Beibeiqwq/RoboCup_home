@@ -14,8 +14,6 @@
 #define TimerAct_GOTO_DUSTBIN     9
 #define TimerAct_PASS             10
 /*---------------初始化区---------------*/
-
-
 static RobotAct Robot;
 /*--------------ROS定义区---------------*/
 ros::Timer Task_Timer;
@@ -79,6 +77,11 @@ void Init_keywords()
     Robot.strPerson.push_back("person");
     Robot.strPerson.push_back("People");
     Robot.strPerson.push_back("people");
+
+    Robot.objPlacement.push_back("obj1");
+    Robot.objPlacement.push_back("obj2");
+    Robot.objPlacement.push_back("obj3");
+    Robot.objPlacement.push_back("obj4");
     cout << "[Init]关键词初始化完成！" << endl;
 }
 
@@ -104,7 +107,7 @@ void MainCallback(const ros::TimerEvent &e)
     if (nState == STATE_WAIT_CMD)
     {
         bool bAction = false;
-        if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) && Robot.GetResult_Pass() == true)
+        if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) == true)
             nState = STATE_GOTO_EXIT;
 
         if (TimerAct == TimerAct_READY)
@@ -151,8 +154,8 @@ void MainCallback(const ros::TimerEvent &e)
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     bAction = true;
-                    //TimerAct = TimerAct_FIND_OBJ;
-                    TimerAct = TimerAct_READY;
+                    TimerAct = TimerAct_FIND_OBJ;
+                    //TimerAct = TimerAct_READY;
                     Robot.State_Reset();
                     Robot._bFixView_ok = false;
                 }
@@ -196,13 +199,13 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.strTarget = Robot.coord_dustbin;
                 Robot.arAct.push_back(newAct);
                 TimerAct = TimerAct_PASS;
+                bAction =true;
             }
             else
             {
                 //TimerAct = TimcerAct_FIND_OBJ;
                 cout <<"等待抓取结束 " << endl;
             }
-            bAction =true;
         }
 
         if(TimerAct == TimerAct_PASS && Robot.bArrive == true && Robot.GetResult_Grab() == true)

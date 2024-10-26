@@ -60,9 +60,11 @@ static std::string pc_topic;
 static ros::Publisher pc_pub;
 static ros::Publisher marker_pub;
 static ros::Publisher vel_pub;
+
 static ros::Publisher mani_ctrl_pub;
 static sensor_msgs::JointState mani_ctrl_msg;
 static ros::Publisher result_pub;
+
 static tf::TransformListener *tf_listener; 
 
 void DrawBox(float inMinX, float inMaxX, float inMinY, float inMaxY, float inMinZ, float inMaxZ, float inR, float inG, float inB);
@@ -706,6 +708,7 @@ int main(int argc, char **argv)
     segmented_objects = nh.advertise<PointCloud> ("segmented_objects",1);
     segmented_plane = nh.advertise<PointCloud> ("segmented_plane",1);
     vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
+    
     mani_ctrl_pub = nh.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
     result_pub = nh.advertise<std_msgs::String>("/wpb_home/grab_result", 30);
 
