@@ -142,29 +142,27 @@ void MainCallback(const ros::TimerEvent &e)
                 //     Robot._bFixView = false;
                 // }
                 Robot._bFixView_ok = true; //测试用
-                if (Robot._bFixView_ok == true) //回调函数中视角修正
+                if (Robot.GetResult_FixView() == true) //回调函数中视角修正
                 {
                     //Robot._bFixView = false;
-                    cout << "[TaskPub]发布任务: 动作识别" << endl;
-
+                    cout << "[TaskPub]发布任务: 人脸+动作识别" << endl;
                     stAct newAct;
                     newAct.nAct = ACT_ACTION_DETECT;
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
-                    Robot._bFixView_ok = false;
                     bAction = true;
                     TimerAct = TimerAct_FIND_OBJ;
+                    Robot._bFixView_ok = false;
                 }
             }
         }
-        cout << "timeact" << TimerAct << endl;
-        cout << "action"  << Robot.GetResult_ActionDetect()<< endl;
-        cout << "face"    << Robot.GetResult_FaceRecog()   << endl;
-        
+        //cout << "timeact" << TimerAct << endl;
+        cout << "action:   "  << Robot.GetResult_ActionDetect()<< endl;
+        cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
+        //cout << "Action"  << RobotAct::bActionDetect << endl;
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true)
         {
-            cout << "22222222" << endl;
             if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab())
             {
                 cout << "[TaskPub]发布任务: 物品寻找" << endl;
@@ -172,7 +170,7 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_FIND_OBJ;
                 newAct.strTarget = "FIND_OBJ";
                 Robot.arAct.push_back(newAct);
-                //bAction = true;
+                bAction = true;
             }
             else
             {
@@ -181,9 +179,9 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_GRAB;
                 newAct.strTarget = object; //预留接口
                 Robot.arAct.push_back(newAct);
+                bAction = true;
                 TimerAct = TimerAct_GOTO_DUSTBIN;
             }
-            bAction = true;
         }
 
         if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.GetResult_Grab() == true)

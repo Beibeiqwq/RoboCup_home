@@ -85,7 +85,6 @@ public:
 	void OpenPoseCallback(const std_msgs::String::ConstPtr& msg);
 	void FaceRecogCallback(const std_msgs::String::ConstPtr& msg);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
-	void ProcColorCB(const sensor_msgs::ImageConstPtr& msg);
 	/*--------------程序功能--------------*/
 	void Parameter_Check();
 	void ShowActs();
@@ -148,9 +147,9 @@ private:
 	waterplus_map_tools::GetWaypointByName srvName;
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
-	string _coord_cmd;  	   //进门坐标
-	string _coord_exit; 	   //出门坐标
-	string _name_yaml;         //配置文件
+	string _coord_cmd;  	   // 进门坐标
+	string _coord_exit; 	   // 出门坐标
+	string _name_yaml;         // 配置文件
 
 	int _nActionStage = 1;	   // 动作计数
 	int nYoloPeople   = -1;	   // 人物编号
@@ -171,7 +170,7 @@ private:
 	bool bOpenpose    = false; // 动作识别
 	bool bPeopleFound = false; // 人物标志位
 	bool bObjectFound = false; // 物品标志位
-	bool bActionDetect= false; // 动作标志位
+	static bool bActionDetect; // 动作标志位
 	bool bFaceDetect  = false; // 人脸标志位
 	string GlobalstrAction;    // POSE动作识别
 	string strFace;            // FACE人脸识别

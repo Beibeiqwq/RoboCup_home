@@ -7,10 +7,10 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 static string strToSpeak = "";
 static string strKeyWord = "";
-
-int RobotAct::nPeopleCount = 0;
-int RobotAct::nLitterCount = 0;
-int RobotAct::nPlaceCount  = 1;
+bool RobotAct::bActionDetect = false;
+int  RobotAct::nPeopleCount = 0;
+int  RobotAct::nLitterCount = 0;
+int  RobotAct::nPlaceCount  = 1;
 
 /**********************************************************/
 /*                       初始化                            */
@@ -19,9 +19,9 @@ int RobotAct::nPlaceCount  = 1;
 /// @brief 构造函数
 RobotAct::RobotAct()
 {
-    nCurActIndex = 0;
-    nCurActCode  = -1;
-    _nActionStage = 1;
+    nCurActIndex  =  0;
+    nCurActCode   = -1;
+    _nActionStage =  1;
 
     strListen = "";
     bGrabDone = false;
@@ -408,6 +408,7 @@ void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
 void RobotAct::FaceRecogCallback(const std_msgs::String::ConstPtr& msg)
 {
     strFace = msg->data;
+    //cout << "[FaceRecogCB]接收到人脸识别数据" << strFace << endl;
 }
 
 /// @brief 机器人对话
@@ -785,12 +786,6 @@ void RobotAct::ActionDetect()
     Speak("动作识别开始");
     sleep(2);
     GlobalstrAction = "站立";
-    if (_nActionStage == 4)
-    {
-        bActionDetect = true;
-        bOpenpose = false;
-        _nActionStage = 1;
-    }
 
     if (_nActionStage == 1)
     {
@@ -814,6 +809,13 @@ void RobotAct::ActionDetect()
         nPeopleCount++;
         _nActionStage = 4;
     }
+    if (_nActionStage == 4)
+    {
+        bActionDetect = true;
+        cout << "Test:bActionDetect=" << bActionDetect << endl;
+        bOpenpose = false;
+        _nActionStage = 1;
+    }
 }
 
 /// @brief 物品识别
@@ -832,13 +834,15 @@ void RobotAct::ObjDetect()
 /// @brief 人脸识别
 void RobotAct::FaceDetect()
 {
-    cout << "[RobotAct]FaceDetect" << endl;
+    //考虑添加nLastFace 增加准确性
+    ROS_INFO("[Face]Recognized Face: %s ",strFace.c_str());
     // if(bPeopleFound == false)
     //     return;
     if (strFace.find("gjy") != std::string::npos)
     {
         Speak("你好，郭嘉悦");
         bFaceDetect = true;
+        cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
     if (strFace.find("lwj") != std::string::npos)
     {
@@ -856,9 +860,11 @@ void RobotAct::FaceDetect()
         Speak("你好，王则与");
         bFaceDetect = true;
     }
-    else
+    else if (strFace.length() == 0)
     {
-        bFaceDetect = false;
+        cout << "【Face】进入Else" << endl;
+        //bFaceDetect = false;
+        FaceDetect();
     }
 }
 
@@ -894,3 +900,9 @@ bool RobotAct::GetResult_Pass()
 {
     return bPassDone;
 }
+
+bool RobotAct::GetResult_FixView()
+{
+    return _bFixView_ok;
+}
+
