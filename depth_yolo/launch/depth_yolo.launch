@@ -9,12 +9,12 @@
   <arg name="image" default="/kinect2/qhd/image_color" />
 
 
-  <param name="yolov5_path"       value="/home/bei/robot_ws/src/yolov5_ros/yolov5"/>
+  <param name="yolov5_path"       value="/home/robot/robot_ws/src/yolov5_ros/yolov5"/>
   <param name="use_cpu"           value="false" />
 
   <!-- Start yolov5 and ros wrapper -->
   <node pkg="yolov5_ros" type="yolo_v5.py" name="yolov5_ros" output="screen" >
-    <param name="weight_path"       value="/home/bei/robot_ws/src/yolov5_ros/weights/yolov5s.pt"/>
+    <param name="weight_path"       value="/home/robot/robot_ws/src/yolov5_ros/weights/yolov5s.pt"/>
     <param name="image_topic"       value="/kinect2/qhd/image_color" />
     <param name="pub_topic"         value="/yolov5/BoundingBoxes" />
     <param name="camera_frame"       value="camera_color_frame"/>

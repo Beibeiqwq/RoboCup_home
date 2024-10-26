@@ -103,7 +103,7 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_GRAB:
+    case ACT_FIND_PERSON:
         if (nLastActCode != ACT_GRAB)
         {
             printf("[RobotAct] %d - Grab %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
@@ -118,7 +118,7 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_PASS:
+    case ACT_CONTACT:
         if (nLastActCode != ACT_PASS)
         {
             printf("[RobotAct] %d - Pass %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
@@ -133,19 +133,19 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_SPEAK:
-        if (nLastActCode != ACT_SPEAK)
-        {
-            printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
-            strToSpeak = arAct[nCurActIndex].strTarget;
-            std_msgs::String rosSpeak;
-            rosSpeak.data = strToSpeak;
-            speak_pub.publish(rosSpeak);
-            strToSpeak = "";
-            usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
-            nCurActIndex++;
-        }
-        break;
+    // case ACT_SPEAK:
+    //     if (nLastActCode != ACT_SPEAK)
+    //     {
+    //         printf("[RobotAct] %d - Speak %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
+    //         strToSpeak = arAct[nCurActIndex].strTarget;
+    //         std_msgs::String rosSpeak;
+    //         rosSpeak.data = strToSpeak;
+    //         speak_pub.publish(rosSpeak);
+    //         strToSpeak = "";
+    //         usleep(arAct[nCurActIndex].nDuration * 1000 * 1000);
+    //         nCurActIndex++;
+    //     }
+    //     break;
 
         // case ACT_LISTEN:
         //     if (nLastActCode != ACT_LISTEN)
