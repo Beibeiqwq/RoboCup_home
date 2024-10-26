@@ -151,7 +151,9 @@ void MainCallback(const ros::TimerEvent &e)
                     newAct.strTarget = "ACTION_DETECT";
                     Robot.arAct.push_back(newAct);
                     bAction = true;
-                    TimerAct = TimerAct_FIND_OBJ;
+                    //TimerAct = TimerAct_FIND_OBJ;
+                    TimerAct = TimerAct_READY;
+                    Robot.State_Reset();
                     Robot._bFixView_ok = false;
                 }
             }

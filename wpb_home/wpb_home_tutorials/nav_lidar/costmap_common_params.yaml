@@ -1,7 +1,7 @@
 robot_radius: 0.25
 inflation_radius: 0.35
-obstacle_range: 5.0
-raytrace_range: 5.0
+obstacle_range: 6.0
+raytrace_range: 6.0
 observation_sources: base_lidar 
 base_lidar: {
     data_type: LaserScan,

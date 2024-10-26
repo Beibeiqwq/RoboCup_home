@@ -91,6 +91,7 @@ public:
 	string GetToSpeak();
 	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord);
 	string FindWord(string, vector<string> &arWord);
+	void   State_Reset();
 	/*--------------机器功能--------------*/
 	void  AddNewWaypoint(string);
 	void  SetSpeed(float,float,float);

@@ -586,6 +586,14 @@ string RobotAct::FindWord(string inSentence, vector<string> &arWord)
     return strRes;
 }
 
+void RobotAct::State_Reset()
+{
+    bArrive       = false;
+    bActionDetect = false;
+    bFaceDetect   = false;
+    cout << "[State_Reset] 重置状态" << endl;
+}
+
 /**********************************************************/
 /*                   机器人功能区                           */
 /**********************************************************/
@@ -862,7 +870,7 @@ void RobotAct::FaceDetect()
     }
     else if (strFace.length() == 0)
     {
-        cout << "【Face】进入Else" << endl;
+        cout << "[Face]未识别到 重新识别" << endl;
         //bFaceDetect = false;
         FaceDetect();
     }
