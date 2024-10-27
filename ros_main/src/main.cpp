@@ -83,6 +83,7 @@ void Init_keywords()
     Robot.objPlacement.push_back("obj2");
     Robot.objPlacement.push_back("obj3");
     Robot.objPlacement.push_back("obj4");
+    Robot.objPlacement.push_back("obj5");
     cout << "[Init]关键词初始化完成！" << endl;
 }
 
@@ -129,7 +130,7 @@ void MainCallback(const ros::TimerEvent &e)
                 TimerAct = TimerAct_FIND_OBJ; //找人行为失败 -> 找物品
             }
             //Robot.bArrive =false;
-            if (!Robot.GetFlag_PeopleFound()) //没找到人 -> 找人//方案一
+            if (!Robot.GetFlag_PeopleFound() && Robot.GetResult_bPeopleFoundFailed() == false) //没找到人 -> 找人//方案一
             {
                 cout << "[TaskPub]发布任务: 寻找人物" << endl;
                 stAct newAct;
@@ -273,6 +274,7 @@ int main(int argc, char** argv)
     cout << "[Main]主节点启动!" << endl;
     nState = STATE_WAIT_ENTR;
     ros::Rate r(10);
+    Robot.startFlagUpdater();
     while (ros::ok())
     {
         if (nState == STATE_WAIT_ENTR)

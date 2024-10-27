@@ -19,10 +19,16 @@ from std_msgs.msg import String
 
 #站立、躺、坐、平坐、行走、蹲起、俯卧撑、摔倒、
 #倚靠墙壁、吸烟、打电话、挥手、举手、挥双手
-pos = ["站立(正面）", "躺（正面）", "坐（正面）", "平坐", "行走（正面）", "蹲起（正面）",
-       "俯卧撑", "摔倒（正面）", "倚靠墙壁", "吸烟", "打电话", "挥手", "举手",
-       "挥双手", "站立（侧面）", "躺下（侧面）", "坐（侧面）", "行走（侧面）", "蹲起（侧面）",
-       "俯卧撑（侧面）", "摔倒（侧面）", "打电话（侧面）", "吸烟（侧面）", "举手（侧面）"]
+pos = ["站立(正面)","站立(侧面)",   # 0 1
+       "打电话(正面)","打电话(侧面)", # 2 3
+       "行走（正面）","行走（侧面）", # 4 5
+       "摔倒(正面)","摔倒(侧面)",    # 6 7
+       "蹲起(正面)","蹲起(侧面)",    # 8 9
+       "挥手(正面)","挥手(侧面)",    # 10 11
+       "举手(正面)","举手(侧面)",    # 12 13
+       "挥双手(正面)","挥双手(侧面)", # 14 15
+       "平躺(正面)","平躺(侧面)",    # 16 17
+       "双手交叉(正面)","双手交叉(侧面)"] # 18 19
 
 # Import Openpose (Ubuntu)
 rospy.init_node('ros_openpose')
@@ -245,6 +251,7 @@ class rosOpenPose:
                     PoseResult = pos[predict_result(self.pointDistance(keyPoints[0]) + self.pointAngle(keyPoints[0]))]
                     print(PoseResult)
                     str = PoseResult
+                    self.msg_pub.publish(str)
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -325,7 +332,7 @@ class rosOpenPose:
         except Exception as e:
             print(f"An error occurred: {e}")
         self.pub.publish(fr)#poseresult
-        self.msg_pub.publish(str)
+        #self.msg_pub.publish(str)
 
 def main():
     frame_id = rospy.get_param("~frame_id")
