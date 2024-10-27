@@ -56,12 +56,12 @@ Date: 2019/11/23
   </include>
 
   <!-- invoke kinect2 camera ros package -->
-  <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" >
+  <!-- <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" >
     <arg name="publish_tf" value="true" />
-  </include>
+  </include> -->
 
   <!-- invoke rviz -->
-  <group if="$(arg rviz)" >
+  <!-- <group if="$(arg rviz)" >
     <node pkg="rviz" type="rviz" respawn="false" required="true" name="rviz" args="-d $(find ros_openpose)/files/person_pointcloud_kinect.rviz" />
-  </group>
+  </group> -->
 </launch>

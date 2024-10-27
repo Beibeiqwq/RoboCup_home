@@ -63,6 +63,7 @@ using namespace cv;
 class RobotAct
 {
 public:
+	//ros::NodeHandle n;
 	/*--------------定义区---------------*/
 	vector<string> arKWPlacement; // 地点
 	vector<string> arKWObject;	  // 物品
@@ -160,7 +161,7 @@ private:
 	ros::Publisher mani_ctrl_pub;
 	//ros::Publisher result_pub;
 	ros::Publisher ctrl_pub;
-	ros::Rate update_rate = ros::Rate(0.5);
+	//ros::Rate update_rate=ros::Rate(0.5);
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   // 进门坐标

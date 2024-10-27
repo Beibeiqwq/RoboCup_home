@@ -267,6 +267,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect",10,&EntranceCB);
     Init_keywords();
+    //ros::Time::init();
     Robot.Init();
     ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
     cout << "[Main]主节点启动!" << endl;
