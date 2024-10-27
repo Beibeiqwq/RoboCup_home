@@ -550,13 +550,10 @@ string ActionText(stAct *inAct)
         ActText = "说话 ";
         ActText += inAct->strTarget;
     }
-    if (inAct->nAct == ACT_MOVE)
+    if (inAct->nAct == ACT_OBJ_DETECT)
     {
-        ActText = "移动 ( ";
-        std::ostringstream stringStream;
-        stringStream << inAct->fLinear_x << " , " << inAct->fLinear_y << " ) - " << inAct->fAngular_z;
-        std::string retStr = stringStream.str();
-        ActText += retStr;
+        ActText = "物品识别 ";
+        ActText += inAct->strTarget;
     }
     if (inAct->nAct == ACT_ADD_WAYPOINT)
     {

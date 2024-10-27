@@ -8,7 +8,7 @@ using namespace std;
 #define ACT_PASS			3
 #define ACT_SPEAK			4
 #define ACT_LISTEN			5
-#define ACT_MOVE			6
+#define ACT_OBJ_DETECT		6
 #define ACT_ADD_WAYPOINT	7
 #define ACT_FIND_OBJ        8
 #define ACT_FIND_PERSON     9

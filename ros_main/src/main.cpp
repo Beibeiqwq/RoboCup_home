@@ -11,8 +11,9 @@
 #define TimerAct_READY            6
 #define TimerAct_FIND_PERSON      7
 #define TimerAct_FIND_OBJ         8
-#define TimerAct_GOTO_DUSTBIN     9
-#define TimerAct_PASS             10
+#define TimerAct_GRAB             9
+#define TimerAct_GOTO_DUSTBIN     10
+#define TimerAct_PASS             11
 /*---------------初始化区---------------*/
 static RobotAct Robot;
 /*--------------ROS定义区---------------*/
@@ -189,16 +190,28 @@ void MainCallback(const ros::TimerEvent &e)
             }
             else
             {
-                cout << "[TaskPub]发布任务: 物品抓取" << endl;
+                cout << "[TaskPub]发布任务: 识别" << endl;
+                stAct newAct;
+                newAct.nAct = ACT_OBJ_DETECT;
+                newAct.strTarget = "OBJ_DETECT"; //预留接口
+                Robot.arAct.push_back(newAct);
+                bAction = true;
+                TimerAct = TimerAct_GRAB;
+            }
+        }
+        if (TimerAct == TimerAct_GRAB && Robot.GetResult_bObjectFoundFailed() == false)
+        {
+            if(Robot.GetResult_Grab() == false && Robot.GetFlag_ObjectFound() == true)
+            {
+                cout <<"[TaskPub]发布任务： 抓取" << endl;
                 stAct newAct;
                 newAct.nAct = ACT_GRAB;
-                newAct.strTarget = object; //预留接口
+                newAct.strTarget = object;
                 Robot.arAct.push_back(newAct);
                 bAction = true;
                 TimerAct = TimerAct_GOTO_DUSTBIN;
             }
         }
-
         if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.GetResult_Grab() == true)
         {
             if(Robot.GetResult_Grab() == true)
