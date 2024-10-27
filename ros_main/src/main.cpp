@@ -123,8 +123,12 @@ void MainCallback(const ros::TimerEvent &e)
 
         if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive == true)
         {
+            if(Robot.GetResult_bPeopleFoundFailed() == true)
+            {
+                TimerAct = TimerAct_FIND_OBJ; //找人行为失败 -> 找物品
+            }
             //Robot.bArrive =false;
-            if (!Robot.GetFlag_PeopleFound()) //在回调函数中实时更新
+            if (!Robot.GetFlag_PeopleFound()) //没找到人 -> 找人//方案一
             {
                 cout << "[TaskPub]发布任务: 寻找人物" << endl;
                 stAct newAct;
@@ -166,8 +170,14 @@ void MainCallback(const ros::TimerEvent &e)
         cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
         //cout << "Action"  << RobotAct::bActionDetect << endl;
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true)
+        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true
+        || TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_bPeopleFoundFailed() == true)
         {
+            if(Robot.GetResult_bObjectFoundFailed() == true)
+            {
+                TimerAct == TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
+            }
+
             if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab())
             {
                 cout << "[TaskPub]发布任务: 物品寻找" << endl;

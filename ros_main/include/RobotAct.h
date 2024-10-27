@@ -87,6 +87,9 @@ public:
 	void OpenPoseCallback(const std_msgs::String::ConstPtr& msg);
 	void FaceRecogCallback(const std_msgs::String::ConstPtr& msg);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
+	/*--------------更新频率--------------*/
+	void updateFlagbPeopleFound();
+	void updateFlagbObjectFound();
 	/*--------------程序功能--------------*/
 	void Parameter_Check();
 	void ShowActs();
@@ -119,13 +122,17 @@ public:
 	bool  GetResult_Grab();
 	bool  GetResult_Pass();
 	bool  GetResult_FixView();
+	bool  GetResult_bPeopleFoundFailed();
+	bool  GetResult_bObjectFoundFailed();
 	string getActionFromOpenpose();
 	string getFaceFromFacerecog();
 	/*--------------静态变量--------------*/
 	static int nPeopleCount;	   // 人物计数
 	static int nLitterCount;	   // 垃圾计数
 	static int nPlaceCount;	       // 地点计数
-
+	static int nObjPlaceCount;     // 垃圾航点
+	bool GlobalbPeopleFound;
+	bool GlobalbObjectFound;
 	string coord_dustbin;          // 垃圾桶坐标
 	string strListen;			   // 语音识别
 	string strDetect;		   	   // YOLO物品识别
@@ -153,6 +160,7 @@ private:
 	ros::Publisher mani_ctrl_pub;
 	//ros::Publisher result_pub;
 	ros::Publisher ctrl_pub;
+	ros::Rate update_rate = ros::Rate(0.5);
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   // 进门坐标
@@ -179,7 +187,9 @@ private:
 	bool bPassDone;			   // 递给结果
 	bool bOpenpose    = false; // 动作识别
 	bool bPeopleFound = false; // 人物标志位
+	bool bPeopleFound_failed = false;
 	bool bObjectFound = false; // 物品标志位
+	bool bObjectFound_failed = false;
 	static bool bActionDetect; // 动作标志位
 	bool bFaceDetect  = false; // 人脸标志位
 	string GlobalstrAction;    // POSE动作识别
