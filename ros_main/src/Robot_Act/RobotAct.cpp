@@ -40,11 +40,12 @@ void RobotAct::Init()
     ros::NodeHandle n("~");
     /*---------------参数导入区---------------*/
     n.param<string>("name", _name_yaml, "default");
-    n.param<string>("enter", _coord_cmd, "cmdA");
-    n.param<string>("place1", arKWPlacement[1], "living room");
-    n.param<string>("place2", arKWPlacement[2], "kitchen");
-    n.param<string>("place3", arKWPlacement[3], "bedroom");
-    n.param<string>("place4", arKWPlacement[4], "dining room");
+    n.param<string>("enter", _coord_cmd, "cmd");
+    n.param<string>("place1", arKWPlacement[1], "1");
+    n.param<string>("place2", arKWPlacement[2], "2");
+    n.param<string>("place3", arKWPlacement[3], "3");
+    n.param<string>("place4", arKWPlacement[4], "4");
+    n.param<string>("place5", arKWPlacement[5], "5");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
@@ -103,7 +104,7 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_FIND_PERSON:
+    case ACT_GRAB:
         if (nLastActCode != ACT_GRAB)
         {
             printf("[RobotAct] %d - Grab %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
@@ -419,23 +420,60 @@ bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_v
 {
     if(bKeyVoice == false)
         return false;
-    printf("识别到: %s\n", req.data.c_str());
-    std::string voice_txt = req.data;
-    if (voice_txt.find("抓取") != std::string::npos)
+    else
     {
-        Speak("请在我抬起手臂后将物品放置在我的抓取区域");
-        Raise_arm();
-        sleep(5);
-        Speak("手臂已抬起，请确认是否放置完成");
+        printf("识别到: %s\n", req.data.c_str());
+        std::string voice_txt = req.data;
+
+        if (voice_txt.find("水") != std::string::npos)
+        {
+            Speak("你要的是水");       
+        }
+        if (voice_txt.find("薯片") != std::string::npos)
+        {
+            Speak("你要的是薯片");
+        }
+        if (voice_txt.find("洗发水") != std::string::npos)
+        {
+            Speak("你要的是洗发水");
+        }
+        if (voice_txt.find("可乐") != std::string::npos)
+        {
+            Speak("你要的是可乐");
+        }
+        if (voice_txt.find("面包") != std::string::npos)
+        {
+            Speak("你要的是面包");
+        }
+        if (voice_txt.find("饼干") != std::string::npos)
+        {
+            Speak("你要的是饼干");
+        }
+        if (voice_txt.find("乐事薯片") != std::string::npos)
+        {
+            Speak("你要的是乐事薯片");
+        }
+        if (voice_txt.find("曲奇") != std::string::npos)
+        {
+            Speak("你要的是曲奇");
+        }
+        if (voice_txt.find("洗洁精") != std::string::npos)
+        {
+            Speak("你要的是洗洁精");
+        }
+        if (voice_txt.find("芬达") != std::string::npos)
+        {
+            Speak("你要的是芬达");
+        }
+        if (voice_txt.find("洗手液") != std::string::npos)
+        {
+            Speak("你要的是洗手液");
+        }
+
+        resp.success = true;
+        return resp.success;
     }
-    if (voice_txt.find("确认") != std::string::npos)
-    {
-        Speak("好的，我将进行抓取 请小心");
-        sleep(2);
-        Grab_arm();
-    }
-    resp.success = true;
-    return resp.success;
+
 }
 
 /**********************************************************/

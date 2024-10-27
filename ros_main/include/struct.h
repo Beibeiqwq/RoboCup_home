@@ -14,6 +14,7 @@ using namespace std;
 #define ACT_GRAB     		9
 #define ACT_ACTION_DETECT   10
 #define ACT_PASS			11
+#define STATE_GOTO_FIND_OBJ 12
 typedef struct stAct
 {
 	int    nAct;			//行为号

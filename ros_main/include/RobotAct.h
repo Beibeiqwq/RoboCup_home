@@ -128,6 +128,7 @@ public:
 	bool bKeyVoice    = false;     // 语音识别开关
 	bool _bFixView    = false;     // 位姿修正
 	bool _bFixView_ok = false;     // 修正状态
+	bool bPeopleFound = false; // 人物标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher  speak_pub;
@@ -168,7 +169,7 @@ private:
 	bool bGrabDone;            // 抓取结果
 	bool bPassDone;			   // 递给结果
 	bool bOpenpose    = false; // 动作识别
-	bool bPeopleFound = false; // 人物标志位
+	
 	bool bObjectFound = false; // 物品标志位
 	static bool bActionDetect; // 动作标志位
 	bool bFaceDetect  = false; // 人脸标志位

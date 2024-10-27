@@ -97,141 +97,6 @@ void EntranceCB(const std_msgs::String::ConstPtr &msg)
     }
 }
 
-/// @brief 时钟运行
-/// @param e
-void MainCallback(const ros::TimerEvent &e)
-{
-    if (nState == STATE_WAIT_CMD)
-    {
-        bool bAction = false;
-        if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) && Robot.GetResult_Pass() == true)
-            nState = STATE_GOTO_EXIT;
-
-        if (TimerAct == TimerAct_READY)
-        {
-            cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[RobotAct::nPlaceCount] << endl;
-            stAct newAct;
-            newAct.nAct = ACT_GOTO;
-            newAct.strTarget = Robot.arKWPlacement[RobotAct::nPlaceCount++];
-            Robot.arAct.push_back(newAct);
-            bAction = true;
-            TimerAct = TimerAct_FIND_PERSON;
-        } 
-
-        if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive == true)
-        {
-            //Robot.bArrive =false;
-            if (!Robot.GetFlag_PeopleFound()) //在回调函数中实时更新
-            {
-                cout << "[TaskPub]发布任务: 寻找人物" << endl;
-                stAct newAct;
-                newAct.nAct = ACT_FIND_PERSON; 
-                newAct.strTarget = "FIND_PERSON";
-                Robot.arAct.push_back(newAct);
-                bAction = true;
-            }
-            else
-            {
-                cout << "[TaskPub]发布任务: 视角修正" << endl;
-                // if(!Robot._bFixView_ok)
-                // {
-                //     Robot._bFixView = true;
-                // }
-                // else
-                // {
-                //     Robot._bFixView = false;
-                // }
-                Robot._bFixView_ok = true; //测试用
-                if (Robot.GetResult_FixView() == true) //回调函数中视角修正
-                {
-                    //Robot._bFixView = false;
-                    cout << "[TaskPub]发布任务: 人脸+动作识别" << endl;
-                    stAct newAct;
-                    newAct.nAct = ACT_ACTION_DETECT;
-                    newAct.strTarget = "ACTION_DETECT";
-                    Robot.arAct.push_back(newAct);
-                    bAction = true;
-                    TimerAct = TimerAct_FIND_OBJ;
-                    Robot._bFixView_ok = false;
-                }
-            }
-        }
-        //cout << "timeact" << TimerAct << endl;
-        cout << "action:   "  << Robot.GetResult_ActionDetect()<< endl;
-        cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
-        //cout << "Action"  << RobotAct::bActionDetect << endl;
-        string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true)
-        {
-            if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab())
-            {
-                cout << "[TaskPub]发布任务: 物品寻找" << endl;
-                stAct newAct;
-                newAct.nAct = ACT_FIND_OBJ;
-                newAct.strTarget = "FIND_OBJ";
-                Robot.arAct.push_back(newAct);
-                bAction = true;
-            }
-            else
-            {
-                cout << "[TaskPub]发布任务: 物品抓取" << endl;
-                stAct newAct;
-                newAct.nAct = ACT_GRAB;
-                newAct.strTarget = object; //预留接口
-                Robot.arAct.push_back(newAct);
-                bAction = true;
-                TimerAct = TimerAct_GOTO_DUSTBIN;
-            }
-        }
-
-        if (TimerAct == TimerAct_GOTO_DUSTBIN && Robot.GetResult_Grab() == true)
-        {
-            if(Robot.GetResult_Grab() == true)
-            {
-                cout << "[TaskPub]发布任务: 前往垃圾桶" << endl;
-                stAct newAct;
-                newAct.nAct = ACT_GOTO;
-                newAct.strTarget = Robot.coord_dustbin;
-                Robot.arAct.push_back(newAct);
-                TimerAct = TimerAct_PASS;
-            }
-            else
-            {
-                //TimerAct = TimcerAct_FIND_OBJ;
-                cout <<"等待抓取结束 " << endl;
-            }
-            bAction =true;
-        }
-
-        if(TimerAct == TimerAct_PASS && Robot.bArrive == true && Robot.GetResult_Grab() == true)
-        {
-            if(Robot.GetResult_Grab() == true && Robot.GetResult_Pass() != true)
-            {
-                cout << "[TaskPub]发布任务: 丢弃垃圾" << endl;
-                stAct newAct;
-                newAct.nAct = ACT_PASS;
-                newAct.strTarget = true;
-                Robot.arAct.push_back(newAct);
-                RobotAct::nLitterCount++;
-                bAction = true;
-                TimerAct = TimerAct_READY;
-            }
-        }
-
-        if(bAction == true)
-        {
-            cout << "[TaskPub]任务确认 展示任务队列..." << endl;
-            nState = STATE_CONFIRM;
-        }
-
-    }
-
-    if (nState == STATE_CONFIRM)
-    {
-        Robot.ShowActs();
-        nState = STATE_ACTION;
-    }
-}
 
 int main(int argc, char** argv)
 {
@@ -240,7 +105,7 @@ int main(int argc, char** argv)
     ros::Subscriber ent_sub = nh.subscribe("/wpb_home/entrance_detect",10,&EntranceCB);
     Init_keywords();
     Robot.Init();
-    ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
+
     cout << "[Main]主节点启动!" << endl;
     nState = STATE_WAIT_ENTR;
     ros::Rate r(10);
@@ -254,18 +119,32 @@ int main(int argc, char** argv)
                 Robot.Enter();
                 Robot.Speak("我已进入场地");
                 sleep(1);
-                nState = STATE_WAIT_CMD;
+                nState = STATE_ACTION;
             }
         }
 
         if (nState == STATE_ACTION)
         {
-            bMainFinish = Robot.Main();
-            if(bMainFinish == false)
+            for (auto it = Robot.arKWPlacement.begin(); it != Robot.arKWPlacement.end(); ++it)
             {
-                nState = STATE_WAIT_CMD;
-                Robot.Reset();
+                Robot.Goto(*it);
+                if (Robot.bPeopleFound == true)
+                {
+                    Robot.bKeyVoice = true;
+                    //ros::spinOnce();
+                    nState = STATE_GOTO_FIND_OBJ;
+                }
+                else 
+                {
+                    nState = STATE_ACTION;
+                }
             }
+        }
+
+        if (nState ==STATE_GOTO_FIND_OBJ)
+        {
+            Robot.arKWPlacement
+            Goto()
         }
 
         if (nState == STATE_GOTO_EXIT)
