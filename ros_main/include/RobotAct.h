@@ -88,10 +88,12 @@ public:
 	void OpenPoseCallback(const std_msgs::String::ConstPtr& msg);
 	void FaceRecogCallback(const std_msgs::String::ConstPtr& msg);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
-	/*--------------更新频率--------------*/
+	/*--------------标志更新--------------*/
 	void updateFlagbPeopleFound(); // 人识别标志位更新
 	void updateFlagbObjectFound(); // 物识别标志位更新
-	void startFlagUpdater();       // 多线程函数
+	/*---------------多线程---------------*/
+	void startFlagUpdater();       // 标志更新线程
+	void SpeedThread(float,float,float); // 速度控制线程
 	/*--------------程序功能--------------*/
 	void Parameter_Check();        // Yaml参数打印
 	void ShowActs();               // 行为队列显示

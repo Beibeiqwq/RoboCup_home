@@ -139,7 +139,7 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 bAction = true;
             }
-            else
+            if(Robot.GetFlag_PeopleFound() && Robot.GetResult_bPeopleFoundFailed() == false)
             {
                 cout << "[TaskPub]发布任务: 视角修正" << endl;
                 // if(!Robot._bFixView_ok)
@@ -177,10 +177,11 @@ void MainCallback(const ros::TimerEvent &e)
         {
             if(Robot.GetResult_bObjectFoundFailed() == true)
             {
-                TimerAct == TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
+                Robot.Speak("寻找物品失败 前往下一个地点");
+                TimerAct = TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
             }
 
-            if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab())
+            if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab() && Robot.GetResult_bObjectFoundFailed()==false)
             {
                 cout << "[TaskPub]发布任务: 物品寻找" << endl;
                 stAct newAct;
@@ -189,7 +190,7 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 bAction = true;
             }
-            else
+            else if(Robot.GetFlag_ObjectFound()==true && Robot.GetResult_bObjectFoundFailed()==false && !Robot.GetResult_Grab())
             {
                 cout << "[TaskPub]发布任务: 识别" << endl;
                 stAct newAct;

@@ -9,11 +9,11 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 static string strToSpeak = "";
 static string strKeyWord = "";
 
-bool RobotAct::bActionDetect = false;
-int  RobotAct::nPeopleCount = 0;
-int  RobotAct::nLitterCount = 0;
-int  RobotAct::nPlaceCount  = 1;
-int  RobotAct::nObjPlaceCount = 1;
+bool RobotAct::bActionDetect = false;       // 动作识别开关
+int  RobotAct::nPeopleCount = 0;            // 完成动作识别计数
+int  RobotAct::nLitterCount = 0;            // 完成垃圾丢弃计数
+int  RobotAct::nPlaceCount  = 1;            // 房间导航地点计数
+int  RobotAct::nObjPlaceCount = 1;          // 物品导航地点计数
 
 static float grab_y_offset       = 0.0f;    //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset    = 0.0f;    //手臂抬起高度的补偿偏移量
@@ -166,7 +166,7 @@ bool RobotAct::Main()
         }
         break;
 
-    case ACT_FIND_PERSON:
+    case ACT_FIND_PERSON://待优化
         if (nLastActCode != ACT_FIND_PERSON)
         {
             double turn_speed = 0.3;
@@ -178,8 +178,11 @@ bool RobotAct::Main()
             while (ros::ok())
             {
                 //等待标志位更新
+                ros::spinOnce();
                 if (GetFlag_PeopleFound())
                 {
+                    SetSpeed(0, 0, 0);
+                    Speak("找到人啦");
                     bPeopleFound_failed = false;
                     nCurActIndex++;
                     break;
@@ -188,9 +191,11 @@ bool RobotAct::Main()
                 SetSpeed(0, 0, turn_speed);
                 ros::Duration(rotate_duration).sleep();
                 SetSpeed(0, 0, 0);
+                ros::spinOnce();
                 //判断是否找到人
                 if (GetFlag_PeopleFound())
                 {
+                    SetSpeed(0, 0, 0);
                     Speak("找到人啦");
                     bPeopleFound_failed = false;
                     nCurActIndex++;
@@ -200,9 +205,11 @@ bool RobotAct::Main()
                 SetSpeed(0, 0, -turn_speed);
                 ros::Duration(rotate_duration*2).sleep();
                 SetSpeed(0, 0, 0);
+                ros::spinOnce();
                 //判断是否找到人
                 if(GetFlag_PeopleFound())
                 {
+                    SetSpeed(0, 0, 0);
                     Speak("找到人啦");
                     bPeopleFound_failed = false;
                     nCurActIndex++;
@@ -264,7 +271,7 @@ bool RobotAct::Main()
             double turn_speed = 0.2;
             double turn_angle = M_PI / 6;
             double rotate_duration = turn_angle / turn_speed;
-            cout <<"[test]rotate_duration" << rotate_duration << endl;
+            //cout <<"[test]rotate_duration" << rotate_duration << endl;
             Speak("未识别到物品 进入找物品行为 前往第一个物品航点"); //测试
             Goto(objPlacement[nObjPlaceCount++]);
             // ros::Time::init();
@@ -272,9 +279,12 @@ bool RobotAct::Main()
             ros::Duration timeout(15.0);
             while (ros::ok())
             {
+                ros::spinOnce();
                 if (GetFlag_ObjectFound())
                 {
+                    SetSpeed(0, 0, 0);
                     bObjectFound_failed = false;
+                    nCurActIndex++;
                     break;
                 }
 
@@ -282,40 +292,53 @@ bool RobotAct::Main()
                 SetSpeed(0, 0, turn_speed);
                 ros::Duration(rotate_duration).sleep();
                 SetSpeed(0, 0, 0);
+                ros::spinOnce();
 
                 if (GetFlag_ObjectFound())
                 {
+                    SetSpeed(0, 0, 0);
                     bObjectFound_failed = false;
+                    nCurActIndex++;
                     break;
                 }
 
                 SetSpeed(0, 0, -turn_speed);
-                ros::Duration(2*rotate_duration).sleep();
+                ros::Duration(1.5*rotate_duration).sleep();
                 SetSpeed(0, 0, 0);
+                ros::spinOnce();
+
+                if (GetFlag_ObjectFound())
+                {
+                    SetSpeed(0, 0, 0);
+                    bObjectFound_failed = false;
+                    nCurActIndex++;
+                    break;
+                }
 
                 if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
                 {
                     cout << "找物品失败" << endl;
                     Speak("找物品失败");
                     bObjectFound_failed = true;
+                    nCurActIndex++;
                     break;
                 }
             }
-            if(GetFlag_ObjectFound())
-            {
-                nCurActIndex++;
-            }
-            nCurActIndex++;
+            // if(GetFlag_ObjectFound())
+            // {
+            //     nCurActIndex++;
+            // }
+            // nCurActIndex++;
         }
         break;
 
     case ACT_ACTION_DETECT:
         if (nLastActCode != ACT_ACTION_DETECT)
         {
-            if (bPeopleFound == true)
+            if (GlobalbPeopleFound == true)
             {
                 FaceDetect();
-                bOpenpose = true;
+                bOpenpose = true; //开启Openpose回调开关
                 // if(bFaceDetect == true)
                 // {
                 //     bOpenpose = true;
@@ -380,6 +403,11 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
 {
     //cout << "[YOLOV5CB]:接收到Yolov5数据" << endl;
     YOLO_BBOX.clear();
+    recv_BBOX.clear();
+    bPeopleFound = false;
+    bObjectFound = false;
+    string Peoplename = "";
+    string Objectname = "";
     int nNum = msg.name.size();
     bool bAction = false;
     if (nNum > 0)
@@ -400,8 +428,9 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
             box_object.probability = msg.probability[i]; // 置信度
             recv_BBOX.push_back(box_object);
             //strDetect = msg.name[i];
-            string Peoplename = FindWord(box_object.name, strPerson);
-            string Objectname = FindWord(box_object.name, arKWObject);
+            Peoplename = FindWord(recv_BBOX[i].name, strPerson);
+            cout << "Peoplename =====" << Peoplename << endl;
+            Objectname = FindWord(recv_BBOX[i].name, arKWObject);
             //Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
             {
@@ -415,7 +444,8 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
                 _nTargetX = 1024;
                 _nTargetY = 540;
             }
-            if(Peoplename.length() == 0)
+            // if(Peoplename.length() == 0)
+            else
             {
                 bPeopleFound = false;
                 //updateFlagbPeopleFound();
@@ -427,13 +457,14 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
                 bObjectFound = true;
                 cout << "bObjectFound = true" << endl;
                 //bPeopleFound = false;
-                updateFlagbObjectFound();
+                //updateFlagbObjectFound();
             }
-            if(Objectname.length() == 0)
+            // if(Objectname.length() == 0)
+            else
             {
                 bObjectFound = false;
                 cout << "bObjectFound = false" << endl;
-                updateFlagbObjectFound();
+                //updateFlagbObjectFound();
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -554,7 +585,11 @@ void RobotAct::Parameter_Check()
     cout << "Place2:" << arKWPlacement[2] << endl;
     cout << "Place3:" << arKWPlacement[3] << endl;
     cout << "Place4:" << arKWPlacement[4] << endl;
-    cout << "PID_ForWard:" << _PID_Forward << endl;
+    cout << "obj1:"   << objPlacement[1]  << endl;
+    cout << "obj2:"   << objPlacement[2]  << endl;
+    cout << "obj3:"   << objPlacement[3]  << endl;
+    cout << "obj4:"   << objPlacement[4]  << endl;
+    cout << "PID_ForWard:" << _PID_Forward<< endl;
     cout << "PID_Turn:"    << _PID_Turn   << endl;
     cout << ">>>>>>>>>>>>>>>>>>>> Please check the parameter <<<<<<<<<<<<<<<<<<" << endl;
 }
@@ -692,6 +727,7 @@ void RobotAct::State_Reset()
     cout << "[State_Reset] 重置状态" << endl;
 }
 
+/// @brief 标志位更新（人）
 void RobotAct::updateFlagbPeopleFound()
 {
     ros::Rate update_rate      = ros::Rate(1);
@@ -701,11 +737,13 @@ void RobotAct::updateFlagbPeopleFound()
     while (ros::ok())
     {
         GlobalbPeopleFound = bPeopleFound;
-        std::cout << "[bPeopleFound] Flag updated to " << GlobalbPeopleFound << std::endl;
+        std::cout << "[bPeopleFound]Flag updated to " << GlobalbPeopleFound << endl;
+        ros::spinOnce();
         update_rate.sleep(); // 1s更新一次
     }
 }
 
+/// @brief 标志位更新（物）
 void RobotAct::updateFlagbObjectFound()
 {
     //update_rate      = ros::Rate(0.5);
@@ -714,6 +752,7 @@ void RobotAct::updateFlagbObjectFound()
     {
         GlobalbObjectFound = bObjectFound;
         cout << "[bObjectFound]Flag updated to " << GlobalbObjectFound << endl;
+        ros::spinOnce();
         update_rate.sleep(); // 1s更新一次
     }
 }
@@ -767,6 +806,12 @@ void RobotAct::AddNewWaypoint(string inStr)
 /// @param inTz 旋转角速度
 void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
 {
+    std::thread speed_thread(&RobotAct::SpeedThread, this, inVx, inVy, inTz);
+    speed_thread.detach(); // 分离线程，允许它独立运行
+}
+
+void RobotAct::SpeedThread(float inVx, float inVy, float inTz)
+{
     geometry_msgs::Twist vel_cmd;
     vel_cmd.linear.x = VelFixed(inVx, _vel_max);
     vel_cmd.linear.y = VelFixed(inVy, _vel_max);
@@ -774,6 +819,8 @@ void RobotAct::SetSpeed(float inVx, float inVy, float inTz)
     cout << "设置机器人速度为" << "X:" << inVx << "Y:" << inVy << "Z:" << inTz << endl;
     speed_pub.publish(vel_cmd);
 }
+
+
 
 /// @brief 机器人速度修正
 /// @param inVel 输入速度
@@ -954,7 +1001,7 @@ void RobotAct::ActionDetect()
     Speak("动作识别开始 请开始你的第一个动作");
     //sleep(2);
     //GlobalstrAction = "站立";
-    while (true)
+    while (ros::ok())
     {
         strCurrentAction = getActionFromOpenpose();
         actions.push_back(strCurrentAction);
@@ -974,6 +1021,7 @@ void RobotAct::ActionDetect()
             strStableAction = actions.back();
             break;
         }
+        ros::spinOnce();
 
     }
     
@@ -990,14 +1038,71 @@ void RobotAct::ActionDetect()
         sleep(2);
         _nActionStage = 3;
     }
-    if(_nActionStage == 3 && strCurrentAction != strLastAction)
+    if (_nActionStage == 3)
+    {
+        actions.clear();
+        int StableCount = 0;
+        const int StableThreshold = 5;
+        std::string strCurrentAction;
+        std::string strStableAction;
+        bool needRecognition = true; // 用于控制识别循环
+
+        while (ros::ok())
+        {
+            if (needRecognition)
+            {
+                strCurrentAction = getActionFromOpenpose();
+                actions.push_back(strCurrentAction);
+
+                if (actions.size() > 1 && actions.back() == actions[actions.size() - 2])
+                {
+                    StableCount++;
+                }
+                else
+                {
+                    StableCount = 0;
+                }
+
+                if (StableCount > StableThreshold)
+                {
+                    std::cout << "识别到连续动作：" << actions.back() << "，次数：" << StableCount << std::endl;
+                    strStableAction = actions.back();
+                    //_nActionStage = 4;
+                    std::cout << "_nActionStage=" << _nActionStage << std::endl;
+                    needRecognition = false; // 停止识别
+                }
+            }
+            else
+            {
+                //sleep(1);
+                // 如果需要再次识别，则重新设置 needRecognition = true;
+                if (strStableAction != strLastAction)
+                {
+                    actions.clear();
+                    int StableCount = 0;
+                    strCurrentAction = "";
+                    strStableAction  = "";
+                    needRecognition = true; // 如果不稳定，重新开始识别
+                }
+                else
+                {
+                    _nActionStage = 4;
+                    break;
+                }
+            }
+            ros::spinOnce();
+        }
+    }
+    cout << "strStableAction=" << strStableAction << endl;
+    cout << "strLastAction=" << strLastAction << endl;
+    if(_nActionStage == 4)
     {
         Speak("识别到第二个动作");
-        Speak(strCurrentAction);
+        Speak(strStableAction);
         nPeopleCount++;
-        _nActionStage = 4;
+        _nActionStage = 5;
     }
-    if (_nActionStage == 4)
+    if (_nActionStage == 5)
     {
         bActionDetect = true;
         //cout << "Test:bActionDetect=" << bActionDetect << endl;
@@ -1030,11 +1135,11 @@ void RobotAct::FaceDetect()
     std::vector<std::string> recognizedFaces;
     int StableCount     = 0;
     int StableThreshold = 5;
-    while(true)
+    while(ros::ok())
     {
         CurrentFace = getFaceFromFacerecog();
         recognizedFaces.push_back(CurrentFace);
-
+        
         if(recognizedFaces.size() > 1 && recognizedFaces.back() == recognizedFaces[recognizedFaces.size() - 2])
         {
             StableCount++;
@@ -1047,8 +1152,10 @@ void RobotAct::FaceDetect()
         if (StableCount > StableThreshold)
         {
             std::cout << "识别到人脸：" << recognizedFaces.back() << endl;
+            break;
         }
-
+        ros::spinOnce();
+        sleep(0.2);
     }
 
     if (CurrentFace.find("gjy") != std::string::npos)
@@ -1061,7 +1168,6 @@ void RobotAct::FaceDetect()
     {
         Speak("你好，林文俊");
         bFaceDetect = true;
-        //return;
     }
     if (CurrentFace.find("wsx") != std::string::npos)
     {
