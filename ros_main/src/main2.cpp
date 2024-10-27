@@ -99,6 +99,7 @@ void MainCallback(const ros::TimerEvent &e)
     if (nState == STATE_WAIT_CMD)
     {
         bool bAction = false;//是否压完任务
+        cout << "开始压入任务链表" << endl;
         if ((Robot.nPeopleCount == 3 && Robot.nLitterCount == 3))
             nState = STATE_GOTO_EXIT;
 
@@ -144,6 +145,7 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.nAct = ACT_CONTACT;
                 newAct.strTarget = "CONTACT";
                 Robot.arAct.push_back(newAct);
+                TimerAct = TimerAct_READY;
             }
             else
             {
@@ -201,6 +203,7 @@ int main(int argc, char** argv)
                 std::advance(Robot.ARACT_IT, -(Robot.nCurActIndex - 1));//指回0
                 cout << "A_nCurActIndex: " << Robot.nCurActIndex << endl;
                 nState = STATE_WAIT_CMD;
+                Robot.nCurActIndex = 1;
             }
             else
             {

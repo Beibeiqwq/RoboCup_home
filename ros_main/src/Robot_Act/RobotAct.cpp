@@ -46,7 +46,7 @@ void RobotAct::Init()
     yolo_pub = n.advertise<std_msgs::String>("/yolov5/cmd", 20);
     behaviors_pub = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
-    tf_point_sub = n.subscribe("/depth_yolo/tfpoint_topic", 30, &RobotAct::YOLOV5CB_3D, this);
+    tf_point_sub = n.subscribe("/tfpoint_topic", 30, &RobotAct::YOLOV5CB_3D, this);
     /*---------------主程序区域---------------*/
     cout << "[Init]请检查程序参数...." << endl;
     Parameter_Check();
@@ -177,7 +177,7 @@ bool RobotAct::Main()
         if (1 == 1)
         {
             
-            std::advance(ARACT_IT, nCurActIndex);
+            std::advance(ARACT_IT, nCurActIndex);//1
             
             string StrGoto = ARACT_IT->strTarget;
             
@@ -188,7 +188,7 @@ bool RobotAct::Main()
             nCurActIndex++;//value=2
             std::advance(ARACT_IT, nCurActIndex - 1);//指向dining room
             //bArrive = false;
-            cout << "当前 nCurActIndex值: " << nCurActIndex << endl;//2
+            cout << "GOTO: 当前 nCurActIndex值: " << nCurActIndex << endl;//2
         }
         break;
 
@@ -201,13 +201,24 @@ bool RobotAct::Main()
             string StrGoto = ARACT_IT->strTarget;
             std::advance(ARACT_IT, -nCurActIndex);
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, StrGoto.c_str());
-            for (int i = 0; i < nPeopleCount; i++)
+            if (bPeopleFound == true)
             {
-                AddNewWaypoint_yolo(YOLO_BBOX_3D[i].name);
-                arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
-            }  
-            nCurActIndex++;
-            std::advance(ARACT_IT, nCurActIndex);
+                cout << "找到人" << endl;
+                for (int i = 0; i < nPeopleCount; i++)
+                {
+                    AddNewWaypoint_yolo(YOLO_BBOX_3D[i].name);
+                    arKWPlacement.emplace(arKWPlacement.end(), string(YOLO_BBOX_3D[i].name));
+                }  
+                nCurActIndex++;
+                std::advance(ARACT_IT, nCurActIndex - 1);
+                cout << "FINDPERSON: 当前 nCurActIndex值: " << nCurActIndex << endl;
+            }
+            else
+            {
+                ARACT_IT = arAct.end();
+                cout << "没找到人,跳出当前任务链表" << endl;
+            }
+            
         }
         break;
     

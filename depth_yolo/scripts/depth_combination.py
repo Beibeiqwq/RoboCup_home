@@ -19,7 +19,7 @@ parent_frame = "kinect2_ir_optical_frame"
 
 def yolov5_callback(data):
     global p,if_pcl_ready
-    tfp_info_pub = rospy.Publisher('/depth_yolo/tfpoint_topic', tfpoint, queue_size = 10)
+    tfp_info_pub = rospy.Publisher('/tfpoint_topic', tfpoint, queue_size = 10)
     obj_tf = tf.TransformBroadcaster()
     if(if_pcl_ready):
         bounding_boxes = data.bounding_boxes
