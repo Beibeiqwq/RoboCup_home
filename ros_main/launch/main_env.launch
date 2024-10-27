@@ -59,7 +59,7 @@
 
   <!-- 航点工具  -->
   <node pkg="waterplus_map_tools" type="wp_manager" name="wp_manager" output="screen">
-    <param name="load" type="string" value="/home/bei/waypoints.xml"/> 
+    <param name="load" type="string" value="/home/robot/waypoints.xml"/> 
   </node>
   
   <!-- 航点导航  -->
@@ -194,5 +194,5 @@
   <!-- 递给服务 -->
   <node pkg="wpb_home_behaviors" type="wpb_home_pass_server" name="wpb_home_pass_server"/>
   <!-- 人脸识别 -->
-  <node pkg="ros_main" type="face_detect.py" name="face_detect" output="screen"/>"
+  <!-- <node pkg="ros_main" type="face_detect.py" name="face_detect" output="screen"/>" -->
 </launch>

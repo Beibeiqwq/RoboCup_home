@@ -44,8 +44,8 @@ void RobotAct::Init()
     n.param<string>("place1", arKWPlacement[1], "1");
     n.param<string>("place2", arKWPlacement[2], "2");
     n.param<string>("place3", arKWPlacement[3], "3");
-    n.param<string>("place4", arKWPlacement[4], "4");
-    n.param<string>("place5", arKWPlacement[5], "5");
+    // n.param<string>("place4", arKWPlacement[4], "4");
+    // n.param<string>("place5", arKWPlacement[5], "5");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
@@ -469,7 +469,7 @@ bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_v
         {
             Speak("你要的是洗手液");
         }
-
+        bKeyVoice = false;
         resp.success = true;
         return resp.success;
     }
@@ -490,7 +490,7 @@ void RobotAct::Parameter_Check()
     cout << "Place1:" << arKWPlacement[1] << endl;
     cout << "Place2:" << arKWPlacement[2] << endl;
     cout << "Place3:" << arKWPlacement[3] << endl;
-    cout << "Place4:" << arKWPlacement[4] << endl;
+    // cout << "Place4:" << arKWPlacement[4] << endl;
     cout << "PID_ForWard:" << _PID_Forward << endl;
     cout << "PID_Turn:" << _PID_Turn << endl;
     cout << ">>>>>>>>>>>>>>>>>>>> Please check the parameter <<<<<<<<<<<<<<<<<<" << endl;

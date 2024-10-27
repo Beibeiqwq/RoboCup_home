@@ -36,8 +36,8 @@ void Init_keywords()
     Robot.arKWPlacement.push_back("none");
     Robot.arKWPlacement.push_back("none");
     Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
+    // Robot.arKWPlacement.push_back("none");
+    // Robot.arKWPlacement.push_back("none");
     // 物品关键词
     Robot.arKWObject.push_back("Water");
     Robot.arKWObject.push_back("Chip");
@@ -127,11 +127,14 @@ int main(int argc, char** argv)
         {
             for (auto it = Robot.arKWPlacement.begin(); it != Robot.arKWPlacement.end(); ++it)
             {
-                Robot.Goto(*it);
+                if(Robot.bKeyVoice == false)
+                {
+                    Robot.Goto(*it);
+                }
                 if (Robot.bPeopleFound == true)
                 {
                     Robot.bKeyVoice = true;
-                    //ros::spinOnce();
+                    ros::spinOnce();
                     nState = STATE_GOTO_FIND_OBJ;
                 }
                 else 
@@ -143,8 +146,10 @@ int main(int argc, char** argv)
 
         if (nState ==STATE_GOTO_FIND_OBJ)
         {
-            Robot.arKWPlacement
-            Goto()
+            Robot.Goto("bedroom");
+            Robot.SetSpeed(0, 0, 1);
+
+
         }
 
         if (nState == STATE_GOTO_EXIT)
