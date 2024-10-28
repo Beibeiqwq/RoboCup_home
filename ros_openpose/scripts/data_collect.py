@@ -94,7 +94,6 @@ class ImageCaptureNode:
         picSN += 1
         pictureName = str(picSN) + '_' + label + ".jpg"
         self.picPaths = "/home/bei/robot_ws/src/ros_openpose/dataset/ros/pic_background/" + pictureName
-        #cv2.imwrite(self.picPaths, datum.cvOutputData)
         cv2.imwrite(self.picPaths, frame)
         dstPicPath = "/home/bei/robot_ws/src/ros_openpose/dataset/ros/marked_pic/p_" + self.picPaths.split('/')[-1]  # 处理后的图片
         cv2.imwrite(dstPicPath, datum.cvOutputData)

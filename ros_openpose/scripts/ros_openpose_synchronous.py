@@ -87,7 +87,7 @@ class rosOpenPose:
     def __init__(self, frame_id, no_depth, pub_topic, color_topic, depth_topic, cam_info_topic, op_wrapper, display):
 
         self.pub = rospy.Publisher(pub_topic, Frame, queue_size=10)
-        self.msg_pub = rospy.Publisher("Openpose",String,queue_size=10)
+        self.msg_pub = rospy.Publisher("Openpose",String,queue_size=5)
         msg = String()
         self.frame_id = frame_id
         self.no_depth = no_depth
