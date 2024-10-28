@@ -129,7 +129,7 @@ public:
 	bool _bFixView    = false;     // 位姿修正
 	bool _bFixView_ok = false;     // 修正状态
 	bool bPeopleFound = false; // 人物标志位
-	// bool bFinishVoice = false;     //语音结束标志位
+	bool bFinishVoice = false;     //语音结束标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher  speak_pub;
@@ -145,7 +145,7 @@ private:
 	ros::Subscriber pass_result_sub;
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
-	// ros::ServiceServer chatter_server_;
+	ros::ServiceServer chatter_server_;
 	waterplus_map_tools::GetWaypointByName srvName;
 	/*---------------类内变量区---------------*/
 	int    _check_flag;		   // 程序进入
