@@ -153,6 +153,7 @@ int main(int argc, char** argv)
                 int i = 0;
                 int numPeople = 0;
                 Robot.bArrive = Robot.Goto(*it);
+                sleep(1);
                 Robot.bKeyVoice = true;
                 //cout << "bKey" << Robot.bKeyVoice << endl;
                 if (numPeople == 3)
@@ -160,15 +161,22 @@ int main(int argc, char** argv)
                     nState = STATE_GOTO_FIND_OBJ;
                     break;
                 }
+                bool speak_switch = true;
                 while(1)
                 {
-                    //cout <<"进入while1" << endl;
+                    //cout <<"bArrive" << Robot.bArrive << endl;
+                    //cout <<"bFinishVoice" << Robot.bFinishVoice << endl;
+                    //cout <<"bPeopleFound" << Robot.bPeopleFound << endl;
                     if (Robot.bArrive == true && Robot.bFinishVoice ==true && Robot.bPeopleFound == true) //有人,对话结束
                     {
                         ros::spinOnce();
                         
                         cout <<"成功获取第"<< *it << "位顾客的需求" << endl;
                         Robot.Speak("开始去寻找下一位顾客");
+                        
+                        advance(it, -1);
+                        Robot.arKWPlacement.erase(it+1);
+
                         Robot.bArrive = false; 
                         Robot.bFinishVoice = false; 
                         Robot.bPeopleFound = false;
@@ -176,7 +184,7 @@ int main(int argc, char** argv)
                         
                         break;
                     }
-                    else if (Robot.bArrive == true && Robot.bPeopleFound == false) //没人
+                    if (Robot.bArrive == true && Robot.bPeopleFound == false) //没人
                     {
                         ros::spinOnce();
                         cout << *it << "人没找到" << endl;
@@ -186,28 +194,29 @@ int main(int argc, char** argv)
 
                         break;
                     }
-                    else if (Robot.bArrive == true && Robot.bPeopleFound == true && Robot.bFinishVoice ==false)
+                    if (Robot.bArrive == true && Robot.bPeopleFound == true && Robot.bFinishVoice ==false)
                     {
-                        ros::spinOnce();
+                        //ros::spinOnce();
                         cout << *it << " 等待交流 " << endl;
                        
-                        i++;
-                        if (i % 1000 ==0)
+                        
+                        if (speak_switch)
                         {
                             Robot.Speak("你好，请告诉我你要什么物品");
+                            speak_switch = false;
                         }
                         
                     }
-                    else if (Robot.bArrive == true && Robot.bPeopleFound == true)
-                    {
-                        ros::spinOnce();
-                        Robot.Speak("找到人，没打开语音");
-                    }
-                    else
-                    {
-                        ros::spinOnce();
-                        Robot.Speak("错误");
-                    }
+                    // else if (Robot.bArrive == true && Robot.bPeopleFound == true)//等待语音识别结束
+                    // {
+                    //     ros::spinOnce();
+                    //     Robot.Speak("找到人，没打开语音");
+                    // }
+                    // else
+                    // {
+                    //     ros::spinOnce();
+                    //     Robot.Speak("错误");
+                    // }
                 }
 
             }
