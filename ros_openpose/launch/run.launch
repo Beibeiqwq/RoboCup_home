@@ -16,13 +16,13 @@ Date: 2019/11/23
   <arg name="camera" default="kinect" />
 
   <!-- set this flag to see invoke RViz -->
-  <arg name="rviz" default="true" />
+  <arg name="rviz" default="false" />
 
   <!-- set this flag to invoke the visualization of the skeleton -->
   <arg name="skeleton" default="true" />
 
   <!-- set this flag to see the pointcloud in the visualization inside RViz  -->
-  <arg name="pointcloud" default="true" />
+  <arg name="pointcloud" default="false" />
 
   <!-- set this flag to invoke the visualization of the hands of the skeleton -->
   <arg name="skeleton_hands" default="false" />

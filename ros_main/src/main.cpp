@@ -162,7 +162,7 @@ void MainCallback(const ros::TimerEvent &e)
                     bAction = true;
                     TimerAct = TimerAct_FIND_OBJ;
                     //TimerAct = TimerAct_READY;
-                    Robot.State_Reset();
+                    //Robot.State_Reset();
                     Robot._bFixView_ok = false;
                 }
             }
@@ -179,6 +179,7 @@ void MainCallback(const ros::TimerEvent &e)
             {
                 Robot.Speak("寻找物品失败 前往下一个地点");
                 TimerAct = TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
+                Robot.State_Reset();
             }
 
             if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab() && Robot.GetResult_bObjectFoundFailed()==false)
@@ -271,7 +272,7 @@ int main(int argc, char** argv)
     Init_keywords();
     //ros::Time::init();
     Robot.Init();
-    ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.05), &MainCallback);
+    ros::Timer Task_Timer = nh.createTimer(ros::Duration(0.5), &MainCallback);
     cout << "[Main]主节点启动!" << endl;
     nState = STATE_WAIT_ENTR;
     ros::Rate r(10);

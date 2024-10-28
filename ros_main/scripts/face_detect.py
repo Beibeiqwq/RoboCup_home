@@ -88,7 +88,7 @@ class ImageConverter:
             #cv2.waitKey(500)
         # 将OpenCV的图像信息转换为ROS消息类型
         image_message = bridge.cv2_to_imgmsg(image, "bgr8")
-        self.image_pub.publish(image_message)
+        #self.image_pub.publish(image_message)
         cv2.waitKey(3)
  
 def main():

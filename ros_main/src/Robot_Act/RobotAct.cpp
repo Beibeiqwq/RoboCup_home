@@ -64,7 +64,7 @@ void RobotAct::Init()
     cout << "参数初始化完毕" << endl;
     /*---------------ROS初始化---------------*/
     sub_yolo         = n.subscribe("/yolo_bbox_2d", 5, &RobotAct::YOLOV5Callback, this);
-    sub_pose         = n.subscribe("/Openpose", 5, &RobotAct::OpenPoseCallback, this);
+    sub_pose         = n.subscribe("/Openpose", 1, &RobotAct::OpenPoseCallback, this);
     sub_face         = n.subscribe("/FaceDetect", 5, &RobotAct::FaceRecogCallback, this);
     grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
     pass_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/pass_result", 30, &RobotAct::PassResultCallback, this);
@@ -296,8 +296,8 @@ bool RobotAct::Main()
 
                 // 进行转动
                 SetSpeed(0, 0, turn_speed);
-                ros::Duration(rotate_duration).sleep();
-                SetSpeed(0, 0, 0);
+                //ros::Duration(rotate_duration).sleep();
+                //SetSpeed(0, 0, 0);
                 ros::spinOnce();
 
                 if (GetFlag_ObjectFound())
@@ -309,8 +309,8 @@ bool RobotAct::Main()
                 }
 
                 SetSpeed(0, 0, -turn_speed);
-                ros::Duration(1.5*rotate_duration).sleep();
-                SetSpeed(0, 0, 0);
+                //ros::Duration(1.5*rotate_duration).sleep();
+                //SetSpeed(0, 0, 0);
                 ros::spinOnce();
 
                 if (GetFlag_ObjectFound())
@@ -730,6 +730,8 @@ void RobotAct::State_Reset()
     bArrive       = false;
     bActionDetect = false;
     bFaceDetect   = false;
+    bObjectFound_failed = false;
+    bPeopleFound_failed = false;
     cout << "[State_Reset] 重置状态" << endl;
 }
 
@@ -1029,7 +1031,7 @@ void RobotAct::ActionDetect()
             break;
         }
         ros::spinOnce();
-        sleep(0.1);
+        sleep(0.2);
 
     }
     
@@ -1102,6 +1104,7 @@ void RobotAct::ActionDetect()
                 }
             }
             ros::spinOnce();
+            sleep(0.2);
         }
     }
     cout << "strStableAction=" << strStableAction << endl;
