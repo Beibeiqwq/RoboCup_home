@@ -51,7 +51,7 @@ void RobotAct::Init()
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
     n.param<float> ("PID_Turn", _PID_Turn, 0.0003);
     /*---------------ROS初始化---------------*/
-    sub_yolo         = n.subscribe("/yolo_bbox_2d", 1, &RobotAct::YOLOV5Callback, this);
+    sub_yolo         = n.subscribe("/yolo_bbox_2d", 2, &RobotAct::YOLOV5Callback, this);
     sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCallback, this);
     sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCallback, this);
     grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);

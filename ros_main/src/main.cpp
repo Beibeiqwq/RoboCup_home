@@ -151,12 +151,18 @@ int main(int argc, char** argv)
             for (auto it = Robot.arKWPlacement.begin() + 1; it != Robot.arKWPlacement.end(); ++it)
             {    
                 int i = 0;
+                int numPeople = 0;
                 Robot.bArrive = Robot.Goto(*it);
                 Robot.bKeyVoice = true;
-                cout << "bKey" << Robot.bKeyVoice << endl;
+                //cout << "bKey" << Robot.bKeyVoice << endl;
+                if (numPeople == 3)
+                {
+                    nState = STATE_GOTO_FIND_OBJ;
+                    break;
+                }
                 while(1)
                 {
-                    cout <<"进入while1" << endl;
+                    //cout <<"进入while1" << endl;
                     if (Robot.bArrive == true && Robot.bFinishVoice ==true && Robot.bPeopleFound == true) //有人,对话结束
                     {
                         ros::spinOnce();
@@ -164,8 +170,10 @@ int main(int argc, char** argv)
                         cout <<"成功获取第"<< *it << "位顾客的需求" << endl;
                         Robot.Speak("开始去寻找下一位顾客");
                         Robot.bArrive = false; 
-                        Robot.bFinishVoice =false; 
+                        Robot.bFinishVoice = false; 
                         Robot.bPeopleFound = false;
+                        numPeople++;
+                        
                         break;
                     }
                     else if (Robot.bArrive == true && Robot.bPeopleFound == false) //没人
@@ -174,6 +182,8 @@ int main(int argc, char** argv)
                         cout << *it << "人没找到" << endl;
                         Robot.Speak("没人开始去下一个航点");
                         Robot.bArrive = false; 
+
+
                         break;
                     }
                     else if (Robot.bArrive == true && Robot.bPeopleFound == true && Robot.bFinishVoice ==false)
