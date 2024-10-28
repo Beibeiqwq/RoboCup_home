@@ -175,7 +175,7 @@ public:
 
 private:
   	ros::ServiceServer server_;
-	const std::string login_params_ = "appid = f8a5a076, work_dir = .";
+	const std::string login_params_ = "appid = a4f2bb87, work_dir = .";
 	const std::string session_begin_params_ = 
     "voice_name = xiaoyan, text_encoding = utf8, "
     "sample_rate = 16000, speed = 50, volume = 50, "

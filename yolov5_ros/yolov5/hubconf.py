@@ -34,6 +34,12 @@ def _create(name, pretrained=True, channels=3, classes=80, autoshape=True, verbo
     from utils.general import check_requirements, intersect_dicts, set_logging
     from utils.torch_utils import select_device
 
+    import platform
+    import pathlib
+    plt = platform.system()
+    if plt != 'Windows':
+        pathlib.WindowsPath = pathlib.PosixPath
+
     check_requirements(exclude=('tensorboard', 'thop', 'opencv-python'))
     set_logging(verbose=verbose)
 

@@ -32,6 +32,11 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+import platform
+import pathlib
+plt = platform.system()
+if plt != 'Windows':
+  pathlib.WindowsPath = pathlib.PosixPath
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -216,7 +221,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / '/home/robot/robot_ws/src/yolov5_ros/yolov5/best_zjb4.pt', help='model path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / '/home/robot/robot_ws/src/yolov5_ros/weights/best.pt', help='model path(s)')
     # parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--source', type=str, default='0', help='file/dir/URL/glob, 0 for webcam')
     # parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='(optional) dataset.yaml path')

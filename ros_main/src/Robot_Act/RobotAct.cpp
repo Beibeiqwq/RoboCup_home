@@ -51,7 +51,7 @@ void RobotAct::Init()
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
     n.param<float> ("PID_Turn", _PID_Turn, 0.0003);
     /*---------------ROS初始化---------------*/
-    sub_yolo         = n.subscribe("/yolo_bbox_2d", 10, &RobotAct::YOLOV5Callback, this);
+    sub_yolo         = n.subscribe("/yolo_bbox_2d", 1, &RobotAct::YOLOV5Callback, this);
     sub_pose         = n.subscribe("/Openpose", 10, &RobotAct::OpenPoseCallback, this);
     sub_face         = n.subscribe("/FaceDetect", 10, &RobotAct::FaceRecogCallback, this);
     grab_result_sub  = n.subscribe<std_msgs::String>("/wpb_home/grab_result", 30, &RobotAct::GrabResultCallback, this);
@@ -424,50 +424,82 @@ bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_v
     {
         printf("识别到: %s\n", req.data.c_str());
         std::string voice_txt = req.data;
-
-        if (voice_txt.find("水") != std::string::npos)
+        Speak("你好");
+        while(1)
         {
-            Speak("你要的是水");       
-        }
-        if (voice_txt.find("薯片") != std::string::npos)
-        {
-            Speak("你要的是薯片");
-        }
-        if (voice_txt.find("洗发水") != std::string::npos)
-        {
-            Speak("你要的是洗发水");
-        }
-        if (voice_txt.find("可乐") != std::string::npos)
-        {
-            Speak("你要的是可乐");
-        }
-        if (voice_txt.find("面包") != std::string::npos)
-        {
-            Speak("你要的是面包");
-        }
-        if (voice_txt.find("饼干") != std::string::npos)
-        {
-            Speak("你要的是饼干");
-        }
-        if (voice_txt.find("乐事薯片") != std::string::npos)
-        {
-            Speak("你要的是乐事薯片");
-        }
-        if (voice_txt.find("曲奇") != std::string::npos)
-        {
-            Speak("你要的是曲奇");
-        }
-        if (voice_txt.find("洗洁精") != std::string::npos)
-        {
-            Speak("你要的是洗洁精");
-        }
-        if (voice_txt.find("芬达") != std::string::npos)
-        {
-            Speak("你要的是芬达");
-        }
-        if (voice_txt.find("洗手液") != std::string::npos)
-        {
-            Speak("你要的是洗手液");
+            cout << "A" << endl;
+            ros::spinOnce();
+            cout << "B" << endl;
+            if (voice_txt.find("水") != std::string::npos)
+            {
+                Speak("你要的是水");
+                bFinishVoice = true;   
+                break;    
+            }
+            if (voice_txt.find("薯片") != std::string::npos)
+            {
+                Speak("你要的是薯片");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("洗发水") != std::string::npos)
+            {
+                Speak("你要的是洗发水");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("可乐") != std::string::npos)
+            {
+                Speak("你要的是可乐");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("面包") != std::string::npos)
+            {
+                Speak("你要的是面包");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("饼干") != std::string::npos)
+            {
+                Speak("你要的是饼干");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("乐事薯片") != std::string::npos)
+            {
+                Speak("你要的是乐事薯片");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("曲奇") != std::string::npos)
+            {
+                Speak("你要的是曲奇");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("洗洁精") != std::string::npos)
+            {
+                Speak("你要的是洗洁精");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("芬达") != std::string::npos)
+            {
+                Speak("你要的是芬达");
+                bFinishVoice = true;
+                break;
+            }
+            if (voice_txt.find("洗手液") != std::string::npos)
+            {
+                Speak("你要的是洗手液");
+                bFinishVoice = true;
+                break;
+            }
+            else
+            {
+                Speak("请重新告诉我你要的物品");
+            }
         }
         bKeyVoice = false;
         resp.success = true;

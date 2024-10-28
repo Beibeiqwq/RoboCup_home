@@ -129,6 +129,7 @@ public:
 	bool _bFixView    = false;     // 位姿修正
 	bool _bFixView_ok = false;     // 修正状态
 	bool bPeopleFound = false; // 人物标志位
+	bool bFinishVoice = false;     //语音结束标志位
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher  speak_pub;
