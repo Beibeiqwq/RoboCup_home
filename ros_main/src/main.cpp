@@ -182,7 +182,7 @@ int main(int argc, char** argv)
                         cout << *it << " 等待交流 " << endl;
                        
                         i++;
-                        if (i % 200 ==0)
+                        if (i % 1000 ==0)
                         {
                             Robot.Speak("你好，请告诉我你要什么物品");
                         }

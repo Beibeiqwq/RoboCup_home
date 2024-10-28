@@ -499,6 +499,8 @@ bool RobotAct::ChatterCallback(robot_voice::StringToVoice::Request &req, robot_v
             else
             {
                 Speak("请重新告诉我你要的物品");
+                bFinishVoice = false;
+                break;
             }
         }
         bKeyVoice = false;
