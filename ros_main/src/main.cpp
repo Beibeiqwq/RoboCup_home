@@ -125,29 +125,6 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
-            // for (auto it = Robot.arKWPlacement.begin() + 1; it != Robot.arKWPlacement.end(); ++it)
-            // {
-            //     cout << "准备进行Goto：" << Robot.bKeyVoice << endl;
-            //     if(Robot.bKeyVoice == false)
-            //     {
-            //         cout << "进入bKeyVioce判断：" << Robot.bKeyVoice << endl;
-            //         Robot.Goto(*it);
-            //         ros::spinOnce();
-            //     }
-            //     ros::spinOnce();
-            //     if (Robot.bPeopleFound == true)
-            //     {
-            //         cout << "进入bPeopleFound判断：" << Robot.bPeopleFound << endl;
-            //         Robot.bKeyVoice = true;
-            //         ros::spinOnce();
-            //         //nState = STATE_GOTO_FIND_OBJ;
-            //         cout << "alalalala" << endl;
-            //     }
-            //     else 
-            //     {
-            //         nState = STATE_ACTION;
-            //     }
-            // }
             for (auto it = Robot.arKWPlacement.begin() + 1; it != Robot.arKWPlacement.end(); ++it)
             {    
                 int i = 0;
@@ -196,7 +173,7 @@ int main(int argc, char** argv)
                     }
                     if (Robot.bArrive == true && Robot.bPeopleFound == true && Robot.bFinishVoice ==false)
                     {
-                        //ros::spinOnce();
+                        ros::spinOnce();
                         cout << *it << " 等待交流 " << endl;
                        
                         
