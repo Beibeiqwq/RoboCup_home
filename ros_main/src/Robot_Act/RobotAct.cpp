@@ -190,6 +190,8 @@ bool RobotAct::Main()
             ros::Time start_time = ros::Time::now();
             ros::Duration timeout(15.0);
             ros::Duration turn_time(2.0);
+            Speak("未识别到人 进入找人行为");
+            SetSpeed(0, 0, turn_speed);
             //ros::spinOnce();
             while (ros::ok())
             {
@@ -203,40 +205,40 @@ bool RobotAct::Main()
                     nCurActIndex++;
                     break;
                 }
-                Speak("未识别到人 进入找人行为");
+                // Speak("未识别到人 进入找人行为");
                 //第一次正转
-                SetSpeed(0, 0, turn_speed);
+                // SetSpeed(0, 0, turn_speed);
                 //ros::Duration(rotate_duration).sleep();
                 //SetSpeed(0, 0, 0);
                 ros::spinOnce();
                 //判断是否找到人
-                if (GetFlag_PeopleFound())
-                {
-                    SetSpeed(0, 0, 0);
-                    Speak("找到人啦");
-                    bPeopleFound_failed = false;
-                    nCurActIndex++;
-                    break;
-                }
-                //第二次反转(可以不需要反转？)
-                if ((ros::Time::now() - start_time).toSec() >= turn_time.toSec())
-                {
-                    SetSpeed(0, 0, 0);
-                }
-                SetSpeed(0, 0, -turn_speed);
+                // if (GetFlag_PeopleFound())
+                // {
+                //     SetSpeed(0, 0, 0);
+                //     Speak("找到人啦");
+                //     bPeopleFound_failed = false;
+                //     nCurActIndex++;
+                //     break;
+                // }
+                // //第二次反转(可以不需要反转？)
+                // if ((ros::Time::now() - start_time).toSec() >= turn_time.toSec())
+                // {
+                //     SetSpeed(0, 0, 0);
+                // }
+                // SetSpeed(0, 0, -turn_speed);
 
                 //ros::Duration(rotate_duration*2).sleep();
                 //SetSpeed(0, 0, 0);
-                ros::spinOnce();
-                //判断是否找到人
-                if(GetFlag_PeopleFound())
-                {
-                    SetSpeed(0, 0, 0);
-                    Speak("找到人啦");
-                    bPeopleFound_failed = false;
-                    nCurActIndex++;
-                    break;
-                }
+                // ros::spinOnce();
+                // //判断是否找到人
+                // if(GetFlag_PeopleFound())
+                // {
+                //     SetSpeed(0, 0, 0);
+                //     Speak("找到人啦");
+                //     bPeopleFound_failed = false;
+                //     nCurActIndex++;
+                //     break;
+                // }
 
                 if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
                 {
@@ -294,11 +296,12 @@ bool RobotAct::Main()
             double turn_angle = M_PI / 6;
             double rotate_duration = turn_angle / turn_speed;
             //cout <<"[test]rotate_duration" << rotate_duration << endl;
-            Speak("未识别到物品 进入找物品行为 前往第一个物品航点"); //测试
+            Speak("未识别到物品 进入找物品行为 前往物品航点"); //测试
             Goto(objPlacement[nObjPlaceCount++]);
             // ros::Time::init();
             ros::Time start_time = ros::Time::now();
             ros::Duration timeout(15.0);
+            SetSpeed(0, 0, turn_speed);
             while (ros::ok())
             {
                 ros::spinOnce();
@@ -311,36 +314,37 @@ bool RobotAct::Main()
                 }
 
                 // 进行转动
-                SetSpeed(0, 0, turn_speed);
+                // SetSpeed(0, 0, turn_speed);
                 //ros::Duration(rotate_duration).sleep();
                 //SetSpeed(0, 0, 0);
                 ros::spinOnce();
 
-                if (GetFlag_ObjectFound())
-                {
-                    SetSpeed(0, 0, 0);
-                    bObjectFound_failed = false;
-                    nCurActIndex++;
-                    break;
-                }
+                // if (GetFlag_ObjectFound())
+                // {
+                //     SetSpeed(0, 0, 0);
+                //     bObjectFound_failed = false;
+                //     nCurActIndex++;
+                //     break;
+                // }
 
-                SetSpeed(0, 0, -turn_speed);
-                //ros::Duration(1.5*rotate_duration).sleep();
-                //SetSpeed(0, 0, 0);
-                ros::spinOnce();
+                // SetSpeed(0, 0, -turn_speed);
+                // //ros::Duration(1.5*rotate_duration).sleep();
+                // //SetSpeed(0, 0, 0);
+                // ros::spinOnce();
 
-                if (GetFlag_ObjectFound())
-                {
-                    SetSpeed(0, 0, 0);
-                    bObjectFound_failed = false;
-                    nCurActIndex++;
-                    break;
-                }
+                // if (GetFlag_ObjectFound())
+                // {
+                //     SetSpeed(0, 0, 0);
+                //     bObjectFound_failed = false;
+                //     nCurActIndex++;
+                //     break;
+                // }
 
                 if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
                 {
                     cout << "找物品失败" << endl;
                     Speak("找物品失败");
+                    SetSpeed(0,0,0);
                     bObjectFound_failed = true;
                     nCurActIndex++;
                     break;
@@ -776,7 +780,7 @@ void RobotAct::updateFlagbPeopleFound()
     while (ros::ok())
     {
         GlobalbPeopleFound = bPeopleFound;
-        std::cout << "[bPeopleFound]Flag updated to " << GlobalbPeopleFound << endl;
+        //std::cout << "[bPeopleFound]Flag updated to " << GlobalbPeopleFound << endl;
         ros::spinOnce();
         update_rate.sleep(); // 1s更新一次
     }
@@ -790,7 +794,7 @@ void RobotAct::updateFlagbObjectFound()
     while (ros::ok())
     {
         GlobalbObjectFound = bObjectFound;
-        cout << "[bObjectFound]Flag updated to " << GlobalbObjectFound << endl;
+        //cout << "[bObjectFound]Flag updated to " << GlobalbObjectFound << endl;
         ros::spinOnce();
         update_rate.sleep(); // 1s更新一次
     }
@@ -1163,7 +1167,7 @@ string RobotAct::ActionThread()
     int max_count = 0;
     // unordered_map<std::string,int> action_counts;
     ros::Time start_time = ros::Time::now();
-    ros::Duration timeout(10.0);
+    ros::Duration timeout(9.0);
 
     action_counts.clear();
 
@@ -1278,6 +1282,7 @@ void RobotAct::ObjDetect()
     if (strObject.length() > 0)
     {
         Speak("识别到物体" + Obj_chinese);
+        nLitterCount++;
     }
 }
 
@@ -1286,17 +1291,25 @@ void RobotAct::FaceDetect()
 {
     //考虑添加nLastFace 增加准确性
     ROS_INFO("[Face]Recognized Face: %s ",strFace.c_str());
+    if(Face_fail_counts == 3)
+    {
+        return;
+        Face_fail_counts = 0;
+    }
     // if(bPeopleFound == false)
     //     return;
     std::string CurrentFace = "";
     std::vector<std::string> recognizedFaces;
     int StableCount     = 0;
-    int StableThreshold = 5;
+    int StableThreshold = 10;
+    sleep(3);
+    CurrentFace.clear();
     while(ros::ok())
     {
         CurrentFace = getFaceFromFacerecog();
+        cout << "CurrentFace=" << CurrentFace << endl;
         recognizedFaces.push_back(CurrentFace);
-        
+        sleep(0.2);
         if(recognizedFaces.size() > 1 && recognizedFaces.back() == recognizedFaces[recognizedFaces.size() - 2])
         {
             StableCount++;
@@ -1312,7 +1325,7 @@ void RobotAct::FaceDetect()
             break;
         }
         ros::spinOnce();
-        sleep(0.2);
+        //sleep(0.2);
     }
 
     // if (recognizedFaces.back().find("Jack") != std::string::npos)
@@ -1353,6 +1366,7 @@ void RobotAct::FaceDetect()
         cout << "[Face]未识别到人脸 重新识别...." << endl;
         //bFaceDetect = false;
         FaceDetect();
+        Face_fail_counts++;
     }
 }
 

@@ -169,19 +169,13 @@ void MainCallback(const ros::TimerEvent &e)
             }
         }
         //cout << "timeact" << TimerAct << endl;
-        cout << "action:   "  << Robot.GetResult_ActionDetect()<< endl;
-        cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
+        //cout << "action:   "  << Robot.GetResult_ActionDetect()<< endl;
+        //cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
         //cout << "Action"  << RobotAct::bActionDetect << endl;
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
         if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true
         || TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_bPeopleFoundFailed() == true)
         {
-            if(Robot.GetResult_bObjectFoundFailed() == true)
-            {
-                Robot.Speak("寻找物品失败 前往下一个地点");
-                TimerAct = TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
-                Robot.State_Reset();
-            }
 
             if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab() && Robot.GetResult_bObjectFoundFailed()==false)
             {
@@ -202,6 +196,13 @@ void MainCallback(const ros::TimerEvent &e)
                 bAction = true;
                 TimerAct = TimerAct_READY;
                 Robot.State_Reset();
+            }
+            if(Robot.GetResult_bObjectFoundFailed() == true)
+            {
+                Robot.Speak("寻找物品失败 前往下一个地点");
+                TimerAct = TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
+                Robot.State_Reset();
+                Robot.Reset();
             }
         }
         if (TimerAct == TimerAct_GRAB && Robot.GetResult_bObjectFoundFailed() == false)

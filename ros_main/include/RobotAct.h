@@ -182,7 +182,7 @@ private:
 
 	int _nActionStage = 1;	   // 动作计数
 	int nYoloPeople   = -1;	   // 人物编号
-
+	int Face_fail_counts = 0;
 	int _nImgHeight   = 0;	   // 画面中点纵坐标
 	int _nImgWidth    = 0;	   // 画面中点横坐标
 	int _nTargetX     = 0;	   // 目标人物纵坐标
