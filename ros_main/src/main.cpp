@@ -125,16 +125,19 @@ int main(int argc, char** argv)
 
         if (nState == STATE_ACTION)
         {
+            int numPeople = 0;
             for (auto it = Robot.arKWPlacement.begin() + 1; it != Robot.arKWPlacement.end(); ++it)
             {    
                 int i = 0;
-                int numPeople = 0;
+                
                 Robot.bArrive = Robot.Goto(*it);
                 sleep(1);
                 Robot.bKeyVoice = true;
                 //cout << "bKey" << Robot.bKeyVoice << endl;
                 if (numPeople == 3)
                 {
+                   
+                    Robot.Speak("找人完毕，开始寻找物品")；
                     nState = STATE_GOTO_FIND_OBJ;
                     break;
                 }
@@ -184,16 +187,7 @@ int main(int argc, char** argv)
                         }
                         
                     }
-                    // else if (Robot.bArrive == true && Robot.bPeopleFound == true)//等待语音识别结束
-                    // {
-                    //     ros::spinOnce();
-                    //     Robot.Speak("找到人，没打开语音");
-                    // }
-                    // else
-                    // {
-                    //     ros::spinOnce();
-                    //     Robot.Speak("错误");
-                    // }
+                    
                 }
 
             }
@@ -201,7 +195,7 @@ int main(int argc, char** argv)
         if (nState ==STATE_GOTO_FIND_OBJ)
         {
             Robot.Goto("bedroom");
-            Robot.SetSpeed(0, 0, 1);
+            Robot.SetSpeed(0, 0, 0.2);
 
 
         }
