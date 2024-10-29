@@ -137,7 +137,7 @@ int main(int argc, char** argv)
                 if (numPeople == 3)
                 {
                    
-                    Robot.Speak("找人完毕，开始寻找物品")；
+                    Robot.Speak("找人完毕，开始寻找物品");
                     nState = STATE_GOTO_FIND_OBJ;
                     break;
                 }
