@@ -352,7 +352,8 @@ bool RobotAct::Main()
                 //     nCurActIndex++;
                 // }
                 sleep(1);
-                ActionDetect();
+                ActionDetect1();
+                bOpenpose = false;
                 nCurActIndex++;
             }
         }
@@ -530,6 +531,14 @@ void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
 {
     string strAction;
     string strOpenpose = msg->data;
+    if(bOpenpose == true)
+    {
+        action_counts[msg->data]++;
+    }
+    else if (bOpenpose == false)
+    {
+        action_counts.clear();
+    }
     cout << "[OpenPoseCB]接收到OpenPose数据:" << strOpenpose << endl;
     if (bOpenpose == true) 
     {
@@ -537,6 +546,10 @@ void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
         if (strAction.length() > 0)
         {
             GlobalstrAction = strAction;
+        }
+        else
+        {
+            GlobalstrAction = "";
         }
     }
 }
@@ -1124,6 +1137,102 @@ void RobotAct::ActionDetect()
         _nActionStage = 1;
     }
 }
+
+string RobotAct::ActionThread()
+{
+
+    std::string best_action;
+    int max_count = 0;
+    //unordered_map<std::string,int> action_counts;
+    ros::Time start_time = ros::Time::now();
+    ros::Duration timeout(10.0);
+
+    action_counts.clear();
+
+    while(ros::ok())
+    {
+        //action_counts[GlobalstrAction]++; // 如果GlobalstrAction一直不更新怎么办 写入回调？
+        if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
+        {
+            break;
+        }
+        ros::spinOnce();
+    }
+
+    for (const auto &pair : action_counts)
+    {
+        if (pair.second > max_count)
+        {
+            best_action = pair.first;
+            max_count = pair.second;
+        }
+    }
+
+    if(max_count > 0)
+    {
+        cout << "匹配度最高的动作" << best_action << endl;
+        return best_action;
+        // action_counts.clear();
+    }
+    else
+    {
+        cout << "无动作输出" << endl;
+        // action_counts.clear();
+        return "识别错误";
+    }
+
+}
+
+void RobotAct::ActionDetect1()
+{
+    std::string Actions_recev;
+
+    // 提示用户展示第一个动作
+    Speak("动作识别，请在十秒内展示第一个动作");
+
+    // 休眠，给用户准备时间
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // 休眠 2 秒，适当调整时间
+
+    // 开始检测第一个动作
+    auto actionFuture1 = std::async(std::launch::async, [&]() {
+        return ActionThread(); 
+    });
+
+    // 等待最多 10 秒以检测动作
+    if (actionFuture1.wait_for(std::chrono::seconds(15)) == std::future_status::ready) {
+        Actions_recev = actionFuture1.get();
+        Speak("识别到第一个动作: " + Actions_recev);
+    } else {
+        Speak("没有识别到第一个动作。");
+    }
+
+    // 清空以准备下一个动作
+    Actions_recev.clear();
+
+    // 提示用户展示第二个动作
+    Speak("请在十秒内展示下一个动作");
+
+    // 休眠，给用户准备时间
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // 休眠 2 秒，适当调整时间
+
+    // 开始检测第二个动作
+    auto actionFuture2 = std::async(std::launch::async, [&]() {
+        return ActionThread(); 
+    });
+
+    // 等待最多 10 秒以检测动作
+    if (actionFuture2.wait_for(std::chrono::seconds(15)) == std::future_status::ready) {
+        Actions_recev = actionFuture2.get();
+        Speak("识别到第二个动作: " + Actions_recev);
+    } else {
+        Speak("没有识别到第二个动作。");
+    }
+
+    // 设置动作检测标志
+    bActionDetect = true; // 或根据逻辑设置为 false
+
+}
+
 
 /// @brief 物品识别
 void RobotAct::ObjDetect()

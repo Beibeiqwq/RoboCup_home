@@ -49,6 +49,7 @@
 #include <sensor_msgs/JointState.h>
 #include <thread>
 #include <chrono>
+#include <future>
 /// @brief YOLOV5 BoundingBox2D 格式
 typedef struct BBox2D
 {
@@ -94,6 +95,8 @@ public:
 	/*---------------多线程---------------*/
 	void startFlagUpdater();       // 标志更新线程
 	void SpeedThread(float,float,float); // 速度控制线程
+	string ActionThread();           // 动作统计线程
+	
 	/*--------------程序功能--------------*/
 	void Parameter_Check();        // Yaml参数打印
 	void ShowActs();               // 行为队列显示
@@ -116,6 +119,7 @@ public:
 	void  Pass_arm();              // 机械臂递给
     /*--------------机器任务--------------*/
 	void  ActionDetect();		   // 动作识别
+	void  ActionDetect1();
 	void  ObjDetect();             // 物品识别
 	void  FaceDetect();            // 人脸识别
 	/*--------------标志返回--------------*/
@@ -163,6 +167,8 @@ private:
 	ros::Publisher mani_ctrl_pub;    // 发布者：机械臂控制
 	ros::Publisher ctrl_pub;         // 发布者：底盘控制
 	/*---------------类内变量区---------------*/
+	unordered_map<std::string,int> action_counts;
+	
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   // 进门坐标
 	string _coord_exit; 	   // 出门坐标
