@@ -35,6 +35,21 @@ RobotAct::RobotAct()
     bGrabDone = false;
     bPassDone = false;
     strFace = "";
+    Object_map = 
+    {
+        {"water","水"},
+        {"biscuit","饼干"},
+        {"lays","乐事薯片"},
+        {"chips","薯片"},
+        {"cookie","曲奇"},
+        {"handwash","洗手液"},
+        {"dishsoap","洗洁精"},
+        {"sprite","雪碧"},
+        {"cola","可乐"},
+        {"orange juice","芬达"},
+        {"shampoo","洗发水"},
+        {"bread","面包"}
+    };
 }
 
 /// @brief 析构函数
@@ -203,11 +218,12 @@ bool RobotAct::Main()
                     nCurActIndex++;
                     break;
                 }
-                //第二次反转
+                //第二次反转(可以不需要反转？)
                 if ((ros::Time::now() - start_time).toSec() >= turn_time.toSec())
                 {
-                    SetSpeed(0, 0, -turn_speed);
+                    SetSpeed(0, 0, 0);
                 }
+                SetSpeed(0, 0, -turn_speed);
 
                 //ros::Duration(rotate_duration*2).sleep();
                 //SetSpeed(0, 0, 0);
@@ -343,6 +359,8 @@ bool RobotAct::Main()
         {
             if (GlobalbPeopleFound == true)
             {
+                //可添加视角修正
+
                 FaceDetect();
                 bOpenpose = true; //开启Openpose回调开关
                 // if(bFaceDetect == true)
@@ -460,7 +478,7 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
             }
             if(Objectname.length() > 0)
             {
-                strDetect = msg.name[i];
+                strDetect = msg.name[i];//考虑替换成容器 塞多个物品？
                 bObjectFound = true;
                 //cout << "bObjectFound = true" << endl;
                 //bPeopleFound = false;
@@ -540,18 +558,18 @@ void RobotAct::OpenPoseCallback(const std_msgs::String::ConstPtr &msg)
         action_counts.clear();
     }
     cout << "[OpenPoseCB]接收到OpenPose数据:" << strOpenpose << endl;
-    if (bOpenpose == true) 
-    {
-        strAction = FindWord(strOpenpose, arKWAction);
-        if (strAction.length() > 0)
-        {
-            GlobalstrAction = strAction;
-        }
-        else
-        {
-            GlobalstrAction = "";
-        }
-    }
+    // if (bOpenpose == true) 
+    // {
+    //     strAction = FindWord(strOpenpose, arKWAction);
+    //     if (strAction.length() > 0)
+    //     {
+    //         GlobalstrAction = strAction;
+    //     }
+    //     else
+    //     {
+    //         GlobalstrAction = "";
+    //     }
+    // }
 }
 
 /// @brief 人脸识别
@@ -1143,15 +1161,15 @@ string RobotAct::ActionThread()
 
     std::string best_action;
     int max_count = 0;
-    //unordered_map<std::string,int> action_counts;
+    // unordered_map<std::string,int> action_counts;
     ros::Time start_time = ros::Time::now();
     ros::Duration timeout(10.0);
 
     action_counts.clear();
 
-    while(ros::ok())
+    while (ros::ok())
     {
-        //action_counts[GlobalstrAction]++; // 如果GlobalstrAction一直不更新怎么办 写入回调？
+        // action_counts[GlobalstrAction]++; // 如果GlobalstrAction一直不更新怎么办 写入回调？
         if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
         {
             break;
@@ -1168,11 +1186,14 @@ string RobotAct::ActionThread()
         }
     }
 
-    if(max_count > 0)
+    if (max_count > 0)
     {
         cout << "匹配度最高的动作" << best_action << endl;
-        return best_action;
-        // action_counts.clear();
+        std::string Action_best = FindWord(best_action, arKWAction);
+        if (Action_best.length() > 0)
+        {
+            return Action_best;
+        }
     }
     else
     {
@@ -1180,7 +1201,6 @@ string RobotAct::ActionThread()
         // action_counts.clear();
         return "识别错误";
     }
-
 }
 
 void RobotAct::ActionDetect1()
@@ -1199,7 +1219,7 @@ void RobotAct::ActionDetect1()
     });
 
     // 等待最多 10 秒以检测动作
-    if (actionFuture1.wait_for(std::chrono::seconds(15)) == std::future_status::ready) {
+    if (actionFuture1.wait_for(std::chrono::seconds(12)) == std::future_status::ready) {
         Actions_recev = actionFuture1.get();
         Speak("识别到第一个动作: " + Actions_recev);
     } else {
@@ -1221,7 +1241,7 @@ void RobotAct::ActionDetect1()
     });
 
     // 等待最多 10 秒以检测动作
-    if (actionFuture2.wait_for(std::chrono::seconds(15)) == std::future_status::ready) {
+    if (actionFuture2.wait_for(std::chrono::seconds(12)) == std::future_status::ready) {
         Actions_recev = actionFuture2.get();
         Speak("识别到第二个动作: " + Actions_recev);
     } else {
@@ -1233,17 +1253,31 @@ void RobotAct::ActionDetect1()
 
 }
 
+std::string RobotAct::Obj_trans(const std::string &obj_yoloInput)
+{
+    auto it = Object_map.find(obj_yoloInput);
+    if (it != Object_map.end())
+    {
+        return it->second; // 返回对应的中文
+    }
+    else
+    {
+        return "未知"; // 如果没有找到对应的翻译
+    }
+}
 
 /// @brief 物品识别
 void RobotAct::ObjDetect()
 {
     cout << "开始识别物体" << endl;
     Speak("开始识别物体"); // 测试
+    ros::spinOnce();
     string strObject;
     strObject = FindWord(strDetect, arKWObject);
+    std::string Obj_chinese = Obj_trans(strObject);
     if (strObject.length() > 0)
     {
-        Speak("识别到物体" + strObject);
+        Speak("识别到物体" + Obj_chinese);
     }
 }
 
@@ -1281,28 +1315,40 @@ void RobotAct::FaceDetect()
         sleep(0.2);
     }
 
-    if (CurrentFace.find("gjy") != std::string::npos)
+    // if (recognizedFaces.back().find("Jack") != std::string::npos)
+    // {
+    //     Speak("你好，杰克");
+    //     bFaceDetect = true;
+    //     cout << "[face]bFaceDetect=" << bFaceDetect << endl;
+    // }
+    // if (recognizedFaces.back().find("Linda") != std::string::npos)
+    // {
+    //     Speak("你好，琳达");
+    //     bFaceDetect = true;
+    // }
+    // if (recognizedFaces.back().find("Lily") != std::string::npos)
+    // {
+    //     Speak("你好，莉莉");
+    //     bFaceDetect = true;
+    // }
+
+    if (recognizedFaces.back().find("gjy") != std::string::npos)
     {
         Speak("你好，郭加悦");
         bFaceDetect = true;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
-    if (CurrentFace.find("lwj") != std::string::npos)
-    {
-        Speak("你好，林文俊");
-        bFaceDetect = true;
-    }
-    if (CurrentFace.find("wsx") != std::string::npos)
+    if (recognizedFaces.back().find("wsx") != std::string::npos)
     {
         Speak("你好，王烁心");
         bFaceDetect = true;
     }
-    if (CurrentFace.find("wzy") != std::string::npos)
+    if (recognizedFaces.back().find("wzy") != std::string::npos)
     {
         Speak("你好，王则与");
         bFaceDetect = true;
     }
-    else if (CurrentFace.length() == 0)
+    else if (recognizedFaces.back().length() == 0)
     {
         cout << "[Face]未识别到人脸 重新识别...." << endl;
         //bFaceDetect = false;

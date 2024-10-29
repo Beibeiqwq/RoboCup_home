@@ -104,6 +104,7 @@ public:
 	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord); // 关键字查找 
 	string FindWord(string, vector<string> &arWord);                         // 关键字查找
 	void   State_Reset();          // 状态重置
+	std::string Obj_trans(const std::string &obj);
 	/*--------------机器功能--------------*/
 	void  AddNewWaypoint(string);  // 新航点添加
 	void  SetSpeed(float,float,float); // 速度设置
@@ -148,6 +149,7 @@ public:
 	bool bKeyVoice    = false;     // 语音识别开关
 	bool _bFixView    = false;     // 位姿修正
 	bool _bFixView_ok = false;     // 修正状态
+	unordered_map<std::string,std::string> Object_map;
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher  speak_pub;     // 发布者：语音输出
@@ -168,6 +170,8 @@ private:
 	ros::Publisher ctrl_pub;         // 发布者：底盘控制
 	/*---------------类内变量区---------------*/
 	unordered_map<std::string,int> action_counts;
+	unordered_map<std::string,std::string> Name_map;
+	//unordered_map<std::string,std::string> Object_map;
 	
 	int    _check_flag;		   // 程序进入
 	string _coord_cmd;  	   // 进门坐标

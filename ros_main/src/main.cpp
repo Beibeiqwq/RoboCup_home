@@ -37,30 +37,31 @@ void Init_keywords()
     Robot.arKWPlacement.push_back("none");
     Robot.arKWPlacement.push_back("none");
     Robot.arKWPlacement.push_back("none");
-    // 物品关键词
-    Robot.arKWObject.push_back("Water");
-    Robot.arKWObject.push_back("Chip");
-    Robot.arKWObject.push_back("Sprit");
-    Robot.arKWObject.push_back("Cola");
-    Robot.arKWObject.push_back("Biscuit");
-    Robot.arKWObject.push_back("Bread");
-    Robot.arKWObject.push_back("Lays");
-    Robot.arKWObject.push_back("Cookie");
-    Robot.arKWObject.push_back("Hand wash");
-    Robot.arKWObject.push_back("Orange juice");
-    Robot.arKWObject.push_back("Dish soap");
+    // 物品关键词 == 12
+    Robot.arKWObject.push_back("water");
+    Robot.arKWObject.push_back("chip");
+    Robot.arKWObject.push_back("sprite");
+    Robot.arKWObject.push_back("cola");
+    Robot.arKWObject.push_back("biscuit");
+    Robot.arKWObject.push_back("bread");
+    Robot.arKWObject.push_back("lays");
+    Robot.arKWObject.push_back("cookie");
+    Robot.arKWObject.push_back("handwash");
+    Robot.arKWObject.push_back("orange juice");
+    Robot.arKWObject.push_back("dishsoap");
+    Robot.arKWObject.push_back("shampoo");
 
     // 人名关键词
     Robot.arKWPerson.push_back("Jack");
-    Robot.arKWPerson.push_back("John");
-    Robot.arKWPerson.push_back("Allen");
-    Robot.arKWPerson.push_back("Richard");
-    Robot.arKWPerson.push_back("Mike");
-    Robot.arKWPerson.push_back("Grace");
+    // Robot.arKWPerson.push_back("John");
+    // Robot.arKWPerson.push_back("Allen");
+    // Robot.arKWPerson.push_back("Richard");
+    // Robot.arKWPerson.push_back("Mike");
+    // Robot.arKWPerson.push_back("Grace");
     Robot.arKWPerson.push_back("Linda");
     Robot.arKWPerson.push_back("Lily");
-    Robot.arKWPerson.push_back("Lucy");
-    Robot.arKWPerson.push_back("Jennier");
+    // Robot.arKWPerson.push_back("Lucy");
+    // Robot.arKWPerson.push_back("Jennier");
 
     // 行为关键词
     Robot.arKWAction.push_back("站立");
@@ -199,7 +200,8 @@ void MainCallback(const ros::TimerEvent &e)
                 newAct.strTarget = "OBJ_DETECT"; //预留接口
                 Robot.arAct.push_back(newAct);
                 bAction = true;
-                TimerAct = TimerAct_GRAB;
+                TimerAct = TimerAct_READY;
+                Robot.State_Reset();
             }
         }
         if (TimerAct == TimerAct_GRAB && Robot.GetResult_bObjectFoundFailed() == false)

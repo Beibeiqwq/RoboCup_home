@@ -14,7 +14,7 @@ class ImageConverter:
     def __init__(self):
         self.bridge = CvBridge()
         # 特征信息文件名
-        self.trainData = r"/home/bei/robot_ws/src/ros_main/face_recognition/data/encoding.txt"
+        self.trainData = r"/home/bei/robot_ws/src/ros_main/scripts/encoding.txt"
         # 准备空的列表来保存人脸编码和对应的人名
         # 这个需要提前完成
         self.known_face_encodings = []
