@@ -46,6 +46,7 @@
 #include "xfyun_waterplus/IATSwitch.h"
 #include <waterplus_map_tools/GetWaypointByName.h>
 #include <robot_voice/StringToVoice.h>
+#include <map>
 
 /// @brief YOLOV5 BoundingBox2D 格式
 typedef struct BBox2D
@@ -68,6 +69,7 @@ public:
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
 	vector<string> strPerson;     // YOLO人识别
+	map<string, string> objName; // 存放语音/yolo识别到的物品名称
 	/*--------------初始化---------------*/
 	RobotAct();
 	~RobotAct();
@@ -85,6 +87,7 @@ public:
 	void OpenPoseCallback(const std_msgs::String::ConstPtr& msg);
 	void FaceRecogCallback(const std_msgs::String::ConstPtr& msg);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
+	void VoiceDetectCallback(const std_msgs::String::ConstPtr &msg);
 	/*--------------程序功能--------------*/
 	void Parameter_Check();
 	void ShowActs();
@@ -130,6 +133,7 @@ public:
 	bool _bFixView_ok = false;     // 修正状态
 	bool bPeopleFound = false; // 人物标志位
 	bool bFinishVoice = false;     //语音结束标志位
+	ros::Publisher  voice_control_pub;
 private:
 	/*--------------ROS定义区---------------*/
 	ros::Publisher  speak_pub;
@@ -137,12 +141,14 @@ private:
 	ros::Publisher  yolo_pub;
 	ros::Publisher  add_waypoint_pub;
 	ros::Publisher  behaviors_pub;
+	
 	ros::Subscriber sub_yolo;
 	ros::Subscriber sub_ent;
 	ros::Subscriber sub_pose;
 	ros::Subscriber sub_face;
 	ros::Subscriber grab_result_sub;
 	ros::Subscriber pass_result_sub;
+	ros::Subscriber voice_detect_sub;
 	ros::ServiceClient client_speak;
 	ros::ServiceClient cliGetWPName;
 	ros::ServiceServer chatter_server_;

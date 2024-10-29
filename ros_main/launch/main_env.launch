@@ -179,9 +179,9 @@
   
     <node
       pkg="robot_voice"
-      type="voice_detector"
-      name="voice_detector"
-      launch-prefix="bash -c 'sleep 5; $0 $@'"
+      type="iat_publish"
+      name="iat_publish"
+     
       output="screen"
   />
   <!-- openpose节点 -->

@@ -35,7 +35,16 @@ add_executable(voice_detector
 
 add_executable(robot_controller src/robot_controller.cpp)
 add_executable(voice_creator src/voice_creator.cpp)
+add_executable(iat_publish
+	src/iat_publish.cpp
+	ifly_voice/speech_recognizer.c
+	ifly_voice/linuxrec.c)
 
+add_dependencies(iat_publish ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(iat_publish
+  ${catkin_LIBRARIES} 
+  libmsc.so -ldl -lpthread -lm -lrt -lasound
+)
 add_dependencies(voice_detector ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(voice_detector
   ${catkin_LIBRARIES} 
