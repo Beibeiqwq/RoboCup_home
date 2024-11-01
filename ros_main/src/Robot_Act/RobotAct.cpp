@@ -362,6 +362,7 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
             recv_BBOX.push_back(box_object);
             // strDetect = msg.name[i];
             string Peoplename = FindWord(box_object.name, strPerson);
+            // string ObjName = FindWord(box.name, objName.first);
             // Kinect2 QHD发布的图像 像素为960*540 Kinect2 HD发布的图像 像素为1920*1080
             if (Peoplename.length() > 0)
             {
@@ -682,6 +683,25 @@ string RobotAct::FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord
             if (tmpIndex >= 0)
             {
                 strRes = arWord[j];
+                break;
+            }
+        }
+    }
+    return strRes;
+}
+
+string RobotAct::FindWord_Yolo_MAP(vector<BBox2D> &YOLO_BBOX, map<string, string> &arWord)
+{
+    string strRes = "";
+    int nNum = arWord.size();
+    for (const auto &bbox : YOLO_BBOX)
+    {
+        for (auto it = arWord.begin(); it != arWord.end(); ++it)
+        {
+            int tmpIndex = bbox.name.find(it->first);
+            if (tmpIndex >= 0)
+            {
+                strRes = it -> first;
                 break;
             }
         }

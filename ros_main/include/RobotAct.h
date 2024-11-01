@@ -65,11 +65,13 @@ class RobotAct
 public:
 	/*--------------定义区---------------*/
 	vector<string> arKWPlacement; // 地点
+	vector<string> arKWPlacementObj;//
 	vector<string> arKWObject;	  // 物品
 	vector<string> arKWPerson;	  // 人名
 	vector<string> arKWAction;	  // 行为
 	vector<string> strPerson;     // YOLO人识别
 	map<string, string> objName; // 存放语音/yolo识别到的物品名称
+	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	/*--------------初始化---------------*/
 	RobotAct();
 	~RobotAct();
@@ -93,6 +95,7 @@ public:
 	void ShowActs();
 	string GetToSpeak();
 	string FindWord_Yolo(vector<BBox2D> &YOLO_BBOX, vector<string> &arWord);
+	string FindWord_Yolo_MAP(vector<BBox2D> &YOLO_BBOX, map<string, string> &arWord);
 	string FindWord(string, vector<string> &arWord);
 	/*--------------机器功能--------------*/
 	void  AddNewWaypoint(string);
@@ -183,7 +186,7 @@ private:
 	string GlobalstrAction;    // POSE动作识别
 	string strFace;            // FACE人脸识别
 	/*---------------数组/容器区---------------*/
-	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
+	
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器
 	std::vector<BBox2D> recv_BBOX;
 };

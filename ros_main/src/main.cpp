@@ -129,55 +129,6 @@ int main(int argc, char** argv)
             int nWrong = 0;
             for (auto it = Robot.arKWPlacement.begin() + 1; it != Robot.arKWPlacement.end(); ++it)
             {    
-                // int i = 0;  
-                // Robot.bArrive = Robot.Goto(*it);
-                // sleep(1);
-                // Robot.bKeyVoice = true;
-                // //cout << "bKey" << Robot.bKeyVoice << endl;
-                // if (numPeople == 3) //找完人
-                // { 
-                //     Robot.Speak("找人完毕，开始寻找物品");
-                //     nState = STATE_GOTO_FIND_OBJ;
-                //     break;
-                // }
-                // bool speak_switch = true;
-                // while(1)
-                // {
-                //     //cout <<"bArrive" << Robot.bArrive << endl;
-                //     //cout <<"bFinishVoice" << Robot.bFinishVoice << endl;
-                //     //cout <<"bPeopleFound" << Robot.bPeopleFound << endl;
-                //     if (Robot.bArrive == true && Robot.bFinishVoice ==true && Robot.bPeopleFound == true) //有人,对话结束
-                //     {
-                //         ros::spinOnce();                       
-                //         cout <<"成功获取第"<< *it << "位顾客的需求" << endl;
-                //         Robot.Speak("开始去寻找下一位顾客");                        
-                //         advance(it, -1);
-                //         Robot.arKWPlacement.erase(it+1);
-                //         Robot.bArrive = false; 
-                //         Robot.bFinishVoice = false; 
-                //         Robot.bPeopleFound = false;
-                //         numPeople++;                       
-                //         break;
-                //     }
-                //     if (Robot.bArrive == true && Robot.bPeopleFound == false) //没人
-                //     {
-                //         ros::spinOnce();
-                //         cout << *it << "人没找到" << endl;
-                //         Robot.Speak("没人开始去下一个航点");
-                //         Robot.bArrive = false; 
-                //         break;
-                //     }
-                //     if (Robot.bArrive == true && Robot.bPeopleFound == true && Robot.bFinishVoice ==false)//交流中
-                //     {
-                //         ros::spinOnce();
-                //         cout << *it << " 等待交流 " << endl;                                            
-                //         if (speak_switch)
-                //         {
-                //             Robot.Speak("你好，请告诉我你要什么物品");
-                //             speak_switch = false;
-                //         }                       
-                //     }
-                // }
                 Robot.bArrive = Robot.Goto(*it);
                 Robot.bFinishVoice = false;
                 std_msgs::String start;
@@ -217,14 +168,12 @@ int main(int argc, char** argv)
                         break;
                     }
                 }
-                    // while (Robot.bFinishVoice == false)
-                    // {
-                    // }
 
                     if (numPeople == 3)
                     {
                         nState = STATE_GOTO_FIND_OBJ;
-                        break;
+                        goto nSTATE_GOTO_FIND_OBJ;
+                        //break;
                     }
             
                 else
@@ -234,10 +183,30 @@ int main(int argc, char** argv)
             }    
             
         }
+        nSTATE_GOTO_FIND_OBJ:
         if (nState == STATE_GOTO_FIND_OBJ)
         {
-            Robot.Goto("bedroom");
-            Robot.SetSpeed(0, 0, 0.2);
+            Robot.arKWPlacementObj.push_back("A");
+            Robot.arKWPlacementObj.push_back("B");
+            Robot.arKWPlacementObj.push_back("C");
+            Robot.arKWPlacementObj.push_back("D");
+            Robot.arKWPlacementObj.push_back("E");
+            Robot.arKWPlacementObj.push_back("F");
+            for(auto it = Robot.arKWPlacementObj.begin(); it != Robot.arKWPlacementObj.end(); ++it)
+            {
+                Robot.bArrive = Robot.Goto(*it);
+                Robot.Speak("查看地点");
+                // if (Robot.FindWord_Yolo_MAP(Robot.YOLO_BBOX, Robot.objName) != std::string::npos)
+                // {
+                //     Robot.Speak("哈哈哈哈和");
+                // }
+                // else
+                // {
+
+                // }
+                
+
+            }
 
 
         }
