@@ -190,8 +190,8 @@ bool RobotAct::Main()
             ros::Time start_time = ros::Time::now();
             ros::Duration timeout(15.0);
             ros::Duration turn_time(2.0);
-            Speak("未识别到人 进入找人行为");
-            SetSpeed(0, 0, turn_speed);
+            Speak("寻找家庭成员");
+            SetSpeed(0, 0, 0);
             //ros::spinOnce();
             while (ros::ok())
             {
@@ -200,7 +200,7 @@ bool RobotAct::Main()
                 if (GetFlag_PeopleFound())
                 {
                     SetSpeed(0, 0, 0);
-                    Speak("找到人啦");
+                    Speak("找到家庭成员了");
                     bPeopleFound_failed = false;
                     nCurActIndex++;
                     break;
@@ -296,12 +296,12 @@ bool RobotAct::Main()
             double turn_angle = M_PI / 6;
             double rotate_duration = turn_angle / turn_speed;
             //cout <<"[test]rotate_duration" << rotate_duration << endl;
-            Speak("未识别到物品 进入找物品行为 前往物品航点"); //测试
+            Speak("寻找垃圾"); //测试
             Goto(objPlacement[nObjPlaceCount++]);
             // ros::Time::init();
             ros::Time start_time = ros::Time::now();
             ros::Duration timeout(15.0);
-            SetSpeed(0, 0, turn_speed);
+            SetSpeed(0, 0, 0);
             while (ros::ok())
             {
                 ros::spinOnce();
@@ -343,7 +343,7 @@ bool RobotAct::Main()
                 if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
                 {
                     cout << "找物品失败" << endl;
-                    Speak("找物品失败");
+                    Speak("未找到物品");
                     SetSpeed(0,0,0);
                     bObjectFound_failed = true;
                     nCurActIndex++;
@@ -1185,8 +1185,8 @@ string RobotAct::ActionThread()
     {
         if (pair.second > max_count)
         {
-            best_action = pair.first;
-            max_count = pair.second;
+            best_action = pair.first; //动作
+            max_count = pair.second;  //计数
         }
     }
 
@@ -1212,7 +1212,7 @@ void RobotAct::ActionDetect1()
     std::string Actions_recev;
 
     // 提示用户展示第一个动作
-    Speak("动作识别，请在十秒内展示第一个动作");
+    Speak("开始动作识别，请在十秒内展示第一个动作");
 
     // 休眠，给用户准备时间
     std::this_thread::sleep_for(std::chrono::seconds(2)); // 休眠 2 秒，适当调整时间
@@ -1291,11 +1291,11 @@ void RobotAct::FaceDetect()
 {
     //考虑添加nLastFace 增加准确性
     ROS_INFO("[Face]Recognized Face: %s ",strFace.c_str());
-    if(Face_fail_counts == 3)
-    {
-        return;
-        Face_fail_counts = 0;
-    }
+    // if(Face_fail_counts == 3)
+    // {
+    //     return;
+    //     Face_fail_counts = 0;
+    // }
     // if(bPeopleFound == false)
     //     return;
     std::string CurrentFace = "";
@@ -1304,6 +1304,8 @@ void RobotAct::FaceDetect()
     int StableThreshold = 10;
     sleep(3);
     CurrentFace.clear();
+    ros::Time start_time = ros::Time::now();
+    ros::Duration timeout(20.0);
     while(ros::ok())
     {
         CurrentFace = getFaceFromFacerecog();
@@ -1324,49 +1326,63 @@ void RobotAct::FaceDetect()
             std::cout << "识别到人脸：" << recognizedFaces.back() << endl;
             break;
         }
+
+        if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
+        {
+            Speak("未识别到人脸");
+            SetSpeed(0, 0, 0);
+            //bObjectFound_failed = true;
+            //nCurActIndex++;
+            return;
+        }
         ros::spinOnce();
         //sleep(0.2);
     }
 
-    // if (recognizedFaces.back().find("Jack") != std::string::npos)
+
+    // if (recognizedFaces.back().find("gjy") != std::string::npos)
     // {
-    //     Speak("你好，杰克");
+    //     Speak("你好，郭加悦");
     //     bFaceDetect = true;
     //     cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     // }
-    // if (recognizedFaces.back().find("Linda") != std::string::npos)
+    // if (recognizedFaces.back().find("wsx") != std::string::npos)
     // {
-    //     Speak("你好，琳达");
+    //     Speak("你好，王烁心");
     //     bFaceDetect = true;
     // }
-    // if (recognizedFaces.back().find("Lily") != std::string::npos)
+    // if (recognizedFaces.back().find("wzy") != std::string::npos)
     // {
-    //     Speak("你好，莉莉");
+    //     Speak("你好，王则与");
     //     bFaceDetect = true;
     // }
-
-    if (recognizedFaces.back().find("gjy") != std::string::npos)
+    if (recognizedFaces.back().find("Jack") != std::string::npos)
     {
-        Speak("你好，郭加悦");
+        Speak("你好，你是杰克");
         bFaceDetect = true;
+        //Face_fail_counts = 0;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
-    if (recognizedFaces.back().find("wsx") != std::string::npos)
+    if (recognizedFaces.back().find("Linda") != std::string::npos)
     {
-        Speak("你好，王烁心");
+        Speak("你好，你是琳达");
         bFaceDetect = true;
+        //Face_fail_counts = 0;
+        cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
-    if (recognizedFaces.back().find("wzy") != std::string::npos)
+    if (recognizedFaces.back().find("Lily") != std::string::npos)
     {
-        Speak("你好，王则与");
+        Speak("你好，你是莉莉");
         bFaceDetect = true;
+        //Face_fail_counts = 0;
+        cout << "[face]bFaceDetect=" << bFaceDetect << endl;
     }
     else if (recognizedFaces.back().length() == 0)
     {
         cout << "[Face]未识别到人脸 重新识别...." << endl;
         //bFaceDetect = false;
         FaceDetect();
-        Face_fail_counts++;
+        //Face_fail_counts++;
     }
 }
 

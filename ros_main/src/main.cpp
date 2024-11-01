@@ -31,25 +31,22 @@ std::vector<BBox2D> recv_BBOX;
 /// @brief 关键词初始化
 void Init_keywords()
 {
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    Robot.arKWPlacement.push_back("none");
-    // 物品关键词 == 12
+    Robot.arKWPlacement.push_back("dining room");
+    Robot.arKWPlacement.push_back("dining room");
+    Robot.arKWPlacement.push_back("kitchen");
+    Robot.arKWPlacement.push_back("bedroom");
+    Robot.arKWPlacement.push_back("living room");
+    Robot.arKWPlacement.push_back("exitA");
+    // 物品关键词 == 9
     Robot.arKWObject.push_back("water");
     Robot.arKWObject.push_back("chip");
     Robot.arKWObject.push_back("sprite");
     Robot.arKWObject.push_back("cola");
     Robot.arKWObject.push_back("biscuit");
-    Robot.arKWObject.push_back("bread");
-    Robot.arKWObject.push_back("lays");
     Robot.arKWObject.push_back("cookie");
     Robot.arKWObject.push_back("handwash");
     Robot.arKWObject.push_back("orange juice");
     Robot.arKWObject.push_back("dishsoap");
-    Robot.arKWObject.push_back("shampoo");
 
     // 人名关键词
     Robot.arKWPerson.push_back("Jack");
@@ -80,11 +77,11 @@ void Init_keywords()
     Robot.strPerson.push_back("People");
     Robot.strPerson.push_back("people");
 
-    Robot.objPlacement.push_back("obj1");
-    Robot.objPlacement.push_back("obj2");
-    Robot.objPlacement.push_back("obj3");
-    Robot.objPlacement.push_back("obj4");
-    Robot.objPlacement.push_back("obj5");
+    Robot.objPlacement.push_back("obj dining room");
+    Robot.objPlacement.push_back("obj dining room");
+    Robot.objPlacement.push_back("obj kitchen");
+    Robot.objPlacement.push_back("obj bedroom");
+    Robot.objPlacement.push_back("obj living room");
     cout << "[Init]关键词初始化完成！" << endl;
 }
 
