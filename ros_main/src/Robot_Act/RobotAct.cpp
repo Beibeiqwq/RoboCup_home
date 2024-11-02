@@ -193,13 +193,14 @@ bool RobotAct::Main()
             Speak("寻找家庭成员");
             SetSpeed(0, 0, 0);
             //ros::spinOnce();
+            sleep(2);//等待稳定
             while (ros::ok())
             {
                 //等待标志位更新
                 ros::spinOnce();
                 if (GetFlag_PeopleFound())
                 {
-                    SetSpeed(0, 0, 0);
+                    //SetSpeed(0, 0, 0);
                     Speak("找到家庭成员了");
                     bPeopleFound_failed = false;
                     nCurActIndex++;
@@ -302,12 +303,13 @@ bool RobotAct::Main()
             ros::Time start_time = ros::Time::now();
             ros::Duration timeout(15.0);
             SetSpeed(0, 0, 0);
+            sleep(2);//等待稳定
             while (ros::ok())
             {
                 ros::spinOnce();
                 if (GetFlag_ObjectFound())
                 {
-                    SetSpeed(0, 0, 0);
+                    //SetSpeed(0, 0, 0);
                     bObjectFound_failed = false;
                     nCurActIndex++;
                     break;
@@ -344,7 +346,7 @@ bool RobotAct::Main()
                 {
                     cout << "找物品失败" << endl;
                     Speak("未找到物品");
-                    SetSpeed(0,0,0);
+                    //SetSpeed(0,0,0);
                     bObjectFound_failed = true;
                     nCurActIndex++;
                     break;
