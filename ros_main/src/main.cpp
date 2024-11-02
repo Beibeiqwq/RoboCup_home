@@ -137,7 +137,7 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 bAction = true;
             }
-            if(Robot.GetFlag_PeopleFound() && Robot.GetResult_bPeopleFoundFailed() == false)
+            if(Robot.GetFlag_PeopleFound() && Robot.GetResult_bPeopleFoundFailed() == false)//找到人了
             {
                 cout << "[TaskPub]发布任务: 视角修正" << endl;
                 // if(!Robot._bFixView_ok)

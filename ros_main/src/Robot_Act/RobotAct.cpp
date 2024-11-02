@@ -212,6 +212,14 @@ bool RobotAct::Main()
                 //SetSpeed(0, 0, 0);
                 ros::spinOnce();
                 //判断是否找到人
+                if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
+                {
+                    Speak("找人失败");
+                    cout << "找人失败" << endl;
+                    bPeopleFound_failed = true;
+                    nCurActIndex++;
+                    break; // 超时，退出循环
+                }
                 // if (GetFlag_PeopleFound())
                 // {
                 //     SetSpeed(0, 0, 0);
@@ -240,14 +248,6 @@ bool RobotAct::Main()
                 //     break;
                 // }
 
-                if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
-                {
-                    Speak("找人失败");
-                    cout << "找人失败" << endl;
-                    bPeopleFound_failed = true;
-                    nCurActIndex++;
-                    break; // 超时，退出循环
-                }
 
                 // else if(!GetFlag_PeopleFound())
                 // {
@@ -380,7 +380,14 @@ bool RobotAct::Main()
             }
         }
         break;
-
+    case ACT_OBJ_DETECT:
+        if(nLastActCode != ACT_OBJ_DETECT)
+        {
+            ObjDetect();
+            sleep(2);
+            nCurActIndex++;
+        }
+        break;
     default:
         break;
     }
@@ -1340,22 +1347,6 @@ void RobotAct::FaceDetect()
     }
 
 
-    // if (recognizedFaces.back().find("gjy") != std::string::npos)
-    // {
-    //     Speak("你好，郭加悦");
-    //     bFaceDetect = true;
-    //     cout << "[face]bFaceDetect=" << bFaceDetect << endl;
-    // }
-    // if (recognizedFaces.back().find("wsx") != std::string::npos)
-    // {
-    //     Speak("你好，王烁心");
-    //     bFaceDetect = true;
-    // }
-    // if (recognizedFaces.back().find("wzy") != std::string::npos)
-    // {
-    //     Speak("你好，王则与");
-    //     bFaceDetect = true;
-    // }
     if (recognizedFaces.back().find("Jack") != std::string::npos)
     {
         Speak("你好，你是杰克");
