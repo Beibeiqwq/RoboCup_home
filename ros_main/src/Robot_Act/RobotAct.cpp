@@ -219,12 +219,14 @@ bool RobotAct::Main()
             SetSpeed(0, 0, 0);
             //ros::spinOnce();
             sleep(2);//等待稳定
+            sleep(2);//等待稳定
             while (ros::ok())
             {
                 //等待标志位更新
                 ros::spinOnce();
                 if (GetFlag_PeopleFound())
                 {
+                    //SetSpeed(0, 0, 0);
                     //SetSpeed(0, 0, 0);
                     Speak("找到家庭成员了");
                     cout <<"找到家庭成员"<<endl;
