@@ -33,23 +33,35 @@ void Init_keywords()
 {
     Robot.arKWPlacement.push_back("dining room");
     Robot.arKWPlacement.push_back("dining room");
+    Robot.arKWPlacement.push_back("bedroom");
+    Robot.arKWPlacement.push_back("kitchen");
+    Robot.arKWPlacement.push_back("living room");
     Robot.arKWPlacement.push_back("kitchen");
     Robot.arKWPlacement.push_back("bedroom");
-    Robot.arKWPlacement.push_back("living room");
-    Robot.arKWPlacement.push_back("exitA");
+    Robot.arKWPlacement.push_back("dining room");
+
     // 物品关键词 == 9
-    Robot.arKWObject.push_back("water");
-    Robot.arKWObject.push_back("chip");
-    Robot.arKWObject.push_back("sprite");
-    Robot.arKWObject.push_back("cola");
-    Robot.arKWObject.push_back("biscuit");
-    Robot.arKWObject.push_back("cookie");
-    Robot.arKWObject.push_back("handwash");
-    Robot.arKWObject.push_back("orange juice");
-    Robot.arKWObject.push_back("dishsoap");
+    Robot.arKWObject.push_back("矿泉水");
+    Robot.arKWObject.push_back("农夫山泉");
+    Robot.arKWObject.push_back("膨化食品");
+    Robot.arKWObject.push_back("薯愿");
+    Robot.arKWObject.push_back("护发素");
+    Robot.arKWObject.push_back("威露士");
+    Robot.arKWObject.push_back("洗洁精");
+    Robot.arKWObject.push_back("洗涤灵");
+    Robot.arKWObject.push_back("百事可乐");
+    Robot.arKWObject.push_back("可口可乐");
+    Robot.arKWObject.push_back("祖母绿");
+    Robot.arKWObject.push_back("雪碧");
+    Robot.arKWObject.push_back("奥利奥");
+    Robot.arKWObject.push_back("啤酒瓶");
+    Robot.arKWObject.push_back("冰红茶");
+    Robot.arKWObject.push_back("书本");
+    Robot.arKWObject.push_back("曲奇");
+
 
     // 人名关键词
-    Robot.arKWPerson.push_back("Jack");
+    Robot.arKWPerson.push_back("Mike");
     // Robot.arKWPerson.push_back("John");
     // Robot.arKWPerson.push_back("Allen");
     // Robot.arKWPerson.push_back("Richard");
@@ -77,11 +89,11 @@ void Init_keywords()
     Robot.strPerson.push_back("People");
     Robot.strPerson.push_back("people");
 
-    Robot.objPlacement.push_back("obj dining room");
-    Robot.objPlacement.push_back("obj dining room");
-    Robot.objPlacement.push_back("obj kitchen");
-    Robot.objPlacement.push_back("obj bedroom");
-    Robot.objPlacement.push_back("obj living room");
+    Robot.objPlacement.push_back("obj1");
+    Robot.objPlacement.push_back("obj2");
+    Robot.objPlacement.push_back("obj3");
+    Robot.objPlacement.push_back("obj4");
+    Robot.objPlacement.push_back("obj4");
     cout << "[Init]关键词初始化完成！" << endl;
 }
 
@@ -107,12 +119,14 @@ void MainCallback(const ros::TimerEvent &e)
     if (nState == STATE_WAIT_CMD)
     {
         bool bAction = false;
-        if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) == true)
-            nState = STATE_GOTO_EXIT;
+        // if ((RobotAct::nPeopleCount == 3 && RobotAct::nLitterCount == 3) == true)
+        //     nState = STATE_GOTO_EXIT;
 
         if (TimerAct == TimerAct_READY)
         {
+            Robot.State_Reset();
             cout << "[TaskPub]发布任务: 前往地点：" << Robot.arKWPlacement[RobotAct::nPlaceCount] << endl;
+            Robot.strLastPlace = Robot.arKWPlacement[RobotAct::nPlaceCount];
             stAct newAct;
             newAct.nAct = ACT_GOTO;
             newAct.strTarget = Robot.arKWPlacement[RobotAct::nPlaceCount++];
@@ -122,9 +136,15 @@ void MainCallback(const ros::TimerEvent &e)
         } 
 
         if (TimerAct == TimerAct_FIND_PERSON && Robot.bArrive == true)
+        //if (TimerAct == TimerAct_FIND_PERSON)
         {
+            // if(Robot.bArrive == false)
+            // {
+            //     TimerAct = TimerAct_READY;
+            // }
             if(Robot.GetResult_bPeopleFoundFailed() == true)
             {
+                cout <<"找不到人 寻找物品"<< endl;
                 TimerAct = TimerAct_FIND_OBJ; //找人行为失败 -> 找物品
             }
             //Robot.bArrive =false;
@@ -139,7 +159,7 @@ void MainCallback(const ros::TimerEvent &e)
             }
             if(Robot.GetFlag_PeopleFound() && Robot.GetResult_bPeopleFoundFailed() == false)//找到人了
             {
-                cout << "[TaskPub]发布任务: 视角修正" << endl;
+                //cout << "[TaskPub]发布任务: 视角修正" << endl;
                 // if(!Robot._bFixView_ok)
                 // {
                 //     Robot._bFixView = true;
@@ -170,11 +190,11 @@ void MainCallback(const ros::TimerEvent &e)
         //cout << "face:     "  << Robot.GetResult_FaceRecog()   << endl;
         //cout << "Action"  << RobotAct::bActionDetect << endl;
         string object = Robot.FindWord(Robot.strDetect,Robot.arKWObject);
-        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true && Robot.GetResult_FaceRecog() == true
+        if (TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_ActionDetect() == true
         || TimerAct == TimerAct_FIND_OBJ && Robot.GetResult_bPeopleFoundFailed() == true)
         {
 
-            if (!Robot.GetFlag_ObjectFound() && !Robot.GetResult_Grab() && Robot.GetResult_bObjectFoundFailed()==false)
+            if (!Robot.GetFlag_ObjectFound() && Robot.GetResult_bObjectFoundFailed()==false)
             {
                 cout << "[TaskPub]发布任务: 物品寻找" << endl;
                 stAct newAct;
@@ -183,20 +203,22 @@ void MainCallback(const ros::TimerEvent &e)
                 Robot.arAct.push_back(newAct);
                 bAction = true;
             }
-            else if(Robot.GetFlag_ObjectFound()==true && Robot.GetResult_bObjectFoundFailed()==false && !Robot.GetResult_Grab())
+            else if(Robot.GetFlag_ObjectFound()==true && Robot.GetResult_bObjectFoundFailed()==false)
             {
-                cout << "[TaskPub]发布任务: 识别" << endl;
+                cout << "[TaskPub]发布任务: 识别" << endl;//???
                 stAct newAct;
                 newAct.nAct = ACT_OBJ_DETECT;
                 newAct.strTarget = "OBJ_DETECT"; //预留接口
                 Robot.arAct.push_back(newAct);
                 bAction = true;
                 TimerAct = TimerAct_READY;
-                Robot.State_Reset();
+                //Robot.State_Reset();
+                //Robot.Reset();
             }
             if(Robot.GetResult_bObjectFoundFailed() == true)
             {
-                Robot.Speak("寻找物品失败 前往下一个地点");
+                cout << "寻找垃圾失败" << endl;
+                Robot.Speak("寻找垃圾失败 前往下一个房间");
                 TimerAct = TimerAct_READY; // 没找到物品 -> 进入下一个航点的任务
                 Robot.State_Reset();
                 Robot.Reset();
@@ -281,7 +303,7 @@ int main(int argc, char** argv)
     {
         if (nState == STATE_WAIT_ENTR)
         {
-            if (nOpenCount > 20)
+            if (true)
             {
                 sleep(1);
                 Robot.Enter();
@@ -304,6 +326,7 @@ int main(int argc, char** argv)
         if (nState == STATE_GOTO_EXIT)
         {
             cout << "[Main]任务完成 前往退出地点并清空状态" << endl;
+            Robot.Speak("任务完成 前往出口");
             Robot.Exit();
             sleep(5);
             Robot.Reset();

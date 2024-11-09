@@ -89,6 +89,7 @@ public:
 	void OpenPoseCallback(const std_msgs::String::ConstPtr& msg);
 	void FaceRecogCallback(const std_msgs::String::ConstPtr& msg);
 	bool ChatterCallback(robot_voice::StringToVoice::Request &req, robot_voice::StringToVoice::Response &resp);
+	void ObjCallback(const std_msgs::String::ConstPtr& msg);
 	/*--------------标志更新--------------*/
 	void updateFlagbPeopleFound(); // 人识别标志位更新
 	void updateFlagbObjectFound(); // 物识别标志位更新
@@ -122,7 +123,7 @@ public:
 	void  ActionDetect();		   // 动作识别
 	void  ActionDetect1();
 	void  ObjDetect();             // 物品识别
-	void  FaceDetect();            // 人脸识别
+	bool  FaceDetect();            // 人脸识别
 	/*--------------标志返回--------------*/
 	bool  GetFlag_PeopleFound();   // 是否找到人
 	bool  GetFlag_ObjectFound();   // 是否找到物
@@ -135,6 +136,7 @@ public:
 	bool  GetResult_bObjectFoundFailed(); // 物品识别失败
 	string getActionFromOpenpose();// 动作识别结果获取
 	string getFaceFromFacerecog(); // 人脸识别结果获取
+	void  ObjEnable(bool inActive);
 	/*--------------静态变量--------------*/
 	static int nPeopleCount;	   // 人物计数
 	static int nLitterCount;	   // 垃圾计数
@@ -145,6 +147,7 @@ public:
 	string coord_dustbin;          // 垃圾桶坐标
 	string strListen;			   // 语音识别
 	string strDetect;		   	   // YOLO物品识别
+	string strLastPlace;           // 上一个地点
 	bool bArrive      = false;	   // 到达标志位
 	bool bKeyVoice    = false;     // 语音识别开关
 	bool _bFixView    = false;     // 位姿修正
@@ -152,6 +155,8 @@ public:
 	unordered_map<std::string,std::string> Object_map;
 private:
 	/*--------------ROS定义区---------------*/
+	ros::Subscriber ObjResult;
+	ros::Publisher  ObjEnable_pub;
 	ros::Publisher  speak_pub;     // 发布者：语音输出
 	ros::Publisher  speed_pub;     // 发布者：速度输出
 	ros::Publisher  yolo_pub;      // 发布者：YOLO控制
@@ -205,6 +210,7 @@ private:
 	bool bFaceDetect  = false; // 人脸标志位
 	string GlobalstrAction;    // POSE动作识别
 	string strFace;            // FACE人脸识别
+	string strObj;
 	/*---------------数组/容器区---------------*/
 	std::vector<BBox2D> YOLO_BBOX;					  // 识别结果
 	std::vector<BBox2D>::const_iterator YOLO_BBOX_IT; // 迭代器

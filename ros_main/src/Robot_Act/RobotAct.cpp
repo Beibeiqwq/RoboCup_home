@@ -30,25 +30,37 @@ RobotAct::RobotAct()
     nCurActIndex  =  0;
     nCurActCode   = -1;
     _nActionStage =  1;
-
+    bObjectFound = false;
     strListen = "";
     bGrabDone = false;
     bPassDone = false;
     strFace = "";
     Object_map = 
     {
-        {"water","水"},
-        {"biscuit","饼干"},
-        {"lays","乐事薯片"},
-        {"chips","薯片"},
-        {"cookie","曲奇"},
-        {"handwash","洗手液"},
-        {"dishsoap","洗洁精"},
-        {"sprite","雪碧"},
-        {"cola","可乐"},
-        {"orange juice","芬达"},
-        {"shampoo","洗发水"},
-        {"bread","面包"}
+        {"矿泉水","水"},
+        {"农夫山泉","水"},
+
+        {"膨化食品","薯片"},
+        {"薯愿","薯片"},
+
+        {"护发素","洗手液"},
+        {"威露士","洗手液"},
+
+        {"洗洁精","洗洁精"},
+        {"洗涤灵","洗洁精"},
+        
+        {"百事可乐","可乐"},
+        {"可口可乐","可乐"},
+
+        {"祖母绿","雪碧"},
+        {"雪碧","雪碧"},
+
+        {"奥利奥","奥利奥"},
+
+        {"啤酒瓶","芬达"},
+        {"冰红茶","芬达"},
+        {"书本","曲奇"},
+        {"曲奇","曲奇"},
     };
 }
 
@@ -64,14 +76,17 @@ void RobotAct::Init()
     /*---------------参数导入区---------------*/
     n.param<string>("name", _name_yaml, "default");
     n.param<string>("enter", _coord_cmd, "cmdA");
-    n.param<string>("place1", arKWPlacement[1], "living room");
-    n.param<string>("place2", arKWPlacement[2], "kitchen");
-    n.param<string>("place3", arKWPlacement[3], "bedroom");
-    n.param<string>("place4", arKWPlacement[4], "dining room");
-    n.param<string>("obj1", objPlacement[1], "obj living room");
-    n.param<string>("obj2", objPlacement[2], "obj kitchen");
-    n.param<string>("obj3", objPlacement[3], "obj bedroom");
-    n.param<string>("obj4", objPlacement[4], "obj dining room");
+    n.param<string>("place1", arKWPlacement[1], "dining room");
+    n.param<string>("place2", arKWPlacement[2], "bedroom");
+    n.param<string>("place3", arKWPlacement[3], "kitchen");
+    n.param<string>("place4", arKWPlacement[4], "living room");
+    n.param<string>("place5", arKWPlacement[5], "kitchen");
+    n.param<string>("place6", arKWPlacement[6], "bedroom");
+    n.param<string>("place7", arKWPlacement[7], "dining room");
+    n.param<string>("obj1", objPlacement[1], "obj1");
+    n.param<string>("obj2", objPlacement[2], "obj3");
+    n.param<string>("obj3", objPlacement[3], "obj2");
+    n.param<string>("obj4", objPlacement[4], "obj4");
     n.param<string>("dustbin",coord_dustbin,"dustbinA");
     n.param<string>("exit", _coord_exit, "exitA");
     n.param<float> ("PID_Forward", _PID_Forward, 0.0002);
@@ -92,6 +107,8 @@ void RobotAct::Init()
     behaviors_pub    = n.advertise<std_msgs::String>("/wpb_home/behaviors", 30);
     add_waypoint_pub = n.advertise<waterplus_map_tools::Waypoint>("/waterplus/add_waypoint", 1);
     mani_ctrl_pub    = n.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
+    ObjEnable_pub    = n.advertise<std_msgs::String>("/ObjDetect", 30);
+    ObjResult        = n.subscribe<std_msgs::String>("/obj_results", 2, &RobotAct::ObjCallback, this);
     /*--------------机械臂初始化--------------*/
     mani_ctrl_msg.name.resize(2);
     mani_ctrl_msg.position.resize(2);
@@ -137,6 +154,14 @@ bool RobotAct::Main()
             string StrGoto = arAct[nCurActIndex].strTarget;
             printf("[RobotAct] %d - Find %s\n", nCurActIndex, arAct[nCurActIndex].strTarget.c_str());
             bArrive = Goto(StrGoto);
+            cout << "bArrive = " << bArrive << endl;
+            if(bArrive != true)
+            {
+                cout << "Retry"<< endl;
+                bArrive = Goto(StrGoto);
+                nCurActIndex++;
+                break;
+            }
             nCurActIndex++;
         }
         break;
@@ -188,19 +213,21 @@ bool RobotAct::Main()
             double turn_angle = M_PI / 4;
             double rotate_duration = turn_angle / turn_speed;
             ros::Time start_time = ros::Time::now();
-            ros::Duration timeout(15.0);
+            ros::Duration timeout(10.0);
             ros::Duration turn_time(2.0);
             Speak("寻找家庭成员");
             SetSpeed(0, 0, 0);
             //ros::spinOnce();
+            sleep(2);//等待稳定
             while (ros::ok())
             {
                 //等待标志位更新
                 ros::spinOnce();
                 if (GetFlag_PeopleFound())
                 {
-                    SetSpeed(0, 0, 0);
+                    //SetSpeed(0, 0, 0);
                     Speak("找到家庭成员了");
+                    cout <<"找到家庭成员"<<endl;
                     bPeopleFound_failed = false;
                     nCurActIndex++;
                     break;
@@ -214,7 +241,7 @@ bool RobotAct::Main()
                 //判断是否找到人
                 if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
                 {
-                    Speak("找人失败");
+                    Speak("未找到家庭成员");
                     cout << "找人失败" << endl;
                     bPeopleFound_failed = true;
                     nCurActIndex++;
@@ -292,64 +319,76 @@ bool RobotAct::Main()
     case ACT_FIND_OBJ:
         if (nLastActCode != ACT_FIND_OBJ)
         {
-            double turn_speed = 0.2;
-            double turn_angle = M_PI / 6;
-            double rotate_duration = turn_angle / turn_speed;
+            // double turn_speed = 0.2;
+            // double turn_angle = M_PI / 6;
+            // double rotate_duration = turn_angle / turn_speed;
             //cout <<"[test]rotate_duration" << rotate_duration << endl;
-            Speak("寻找垃圾"); //测试
-            Goto(objPlacement[nObjPlaceCount++]);
-            // ros::Time::init();
-            ros::Time start_time = ros::Time::now();
-            ros::Duration timeout(15.0);
-            SetSpeed(0, 0, 0);
-            while (ros::ok())
+            Speak("开始寻找垃圾,前往垃圾所在地点"); //测试
+            cout <<"前往物品航点"<< endl;
+            string nLastObjPlace = objPlacement[nObjPlaceCount];
+            bool bGotoObj = Goto(objPlacement[nObjPlaceCount++]);
+            if(bGotoObj == false)
             {
-                ros::spinOnce();
-                if (GetFlag_ObjectFound())
-                {
-                    SetSpeed(0, 0, 0);
-                    bObjectFound_failed = false;
-                    nCurActIndex++;
-                    break;
-                }
-
-                // 进行转动
-                // SetSpeed(0, 0, turn_speed);
-                //ros::Duration(rotate_duration).sleep();
-                //SetSpeed(0, 0, 0);
-                ros::spinOnce();
-
-                // if (GetFlag_ObjectFound())
-                // {
-                //     SetSpeed(0, 0, 0);
-                //     bObjectFound_failed = false;
-                //     nCurActIndex++;
-                //     break;
-                // }
-
-                // SetSpeed(0, 0, -turn_speed);
-                // //ros::Duration(1.5*rotate_duration).sleep();
-                // //SetSpeed(0, 0, 0);
-                // ros::spinOnce();
-
-                // if (GetFlag_ObjectFound())
-                // {
-                //     SetSpeed(0, 0, 0);
-                //     bObjectFound_failed = false;
-                //     nCurActIndex++;
-                //     break;
-                // }
-
-                if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
-                {
-                    cout << "找物品失败" << endl;
-                    Speak("未找到物品");
-                    SetSpeed(0,0,0);
-                    bObjectFound_failed = true;
-                    nCurActIndex++;
-                    break;
-                }
+                cout <<"Retry"<<endl;
+                Goto(nLastObjPlace);
+                nCurActIndex++;
             }
+            // ros::Time::init();
+            // ros::Time start_time = ros::Time::now();
+            // ros::Duration timeout(10.0);
+            //SetSpeed(0, 0, 0);
+            //ObjEnable(true);
+            bObjectFound = true;
+            sleep(1);//等待稳定
+            nCurActIndex++;
+            // while (ros::ok())
+            // {
+            //     ros::spinOnce();
+            //     if (GetFlag_ObjectFound())
+            //     {
+            //         //SetSpeed(0, 0, 0);
+            //         bObjectFound_failed = false;
+            //         nCurActIndex++;
+            //         break;
+            //     }
+
+            //     // 进行转动
+            //     // SetSpeed(0, 0, turn_speed);
+            //     //ros::Duration(rotate_duration).sleep();
+            //     //SetSpeed(0, 0, 0);
+            //     ros::spinOnce();
+
+            //     // if (GetFlag_ObjectFound())
+            //     // {
+            //     //     SetSpeed(0, 0, 0);
+            //     //     bObjectFound_failed = false;
+            //     //     nCurActIndex++;
+            //     //     break;
+            //     // }
+
+            //     // SetSpeed(0, 0, -turn_speed);
+            //     // //ros::Duration(1.5*rotate_duration).sleep();
+            //     // //SetSpeed(0, 0, 0);
+            //     // ros::spinOnce();
+
+            //     // if (GetFlag_ObjectFound())
+            //     // {
+            //     //     SetSpeed(0, 0, 0);
+            //     //     bObjectFound_failed = false;
+            //     //     nCurActIndex++;
+            //     //     break;
+            //     // }
+
+            //     if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
+            //     {
+            //         cout << "找物品失败" << endl;
+            //         Speak("未找到物品");
+            //         //SetSpeed(0,0,0);
+            //         bObjectFound_failed = true;
+            //         nCurActIndex++;
+            //         break;
+            //     }
+            // }
             // if(GetFlag_ObjectFound())
             // {
             //     nCurActIndex++;
@@ -365,7 +404,7 @@ bool RobotAct::Main()
             {
                 //可添加视角修正
 
-                FaceDetect();
+                bool resultFaceDetect = FaceDetect();
                 bOpenpose = true; //开启Openpose回调开关
                 // if(bFaceDetect == true)
                 // {
@@ -374,7 +413,10 @@ bool RobotAct::Main()
                 //     nCurActIndex++;
                 // }
                 sleep(1);
-                ActionDetect1();
+                if(resultFaceDetect == true)
+                {
+                    ActionDetect1();
+                }
                 bOpenpose = false;
                 nCurActIndex++;
             }
@@ -383,8 +425,11 @@ bool RobotAct::Main()
     case ACT_OBJ_DETECT:
         if(nLastActCode != ACT_OBJ_DETECT)
         {
+            ObjEnable(true);
+            sleep(1);
             ObjDetect();
-            sleep(2);
+            //sleep(2);
+            ObjEnable(false);
             nCurActIndex++;
         }
         break;
@@ -441,7 +486,7 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
     YOLO_BBOX.clear();
     recv_BBOX.clear();
     bPeopleFound = false;
-    bObjectFound = false;
+    //bObjectFound = false;
     string Peoplename = "";
     string Objectname = "";
     int nNum = msg.name.size();
@@ -486,21 +531,6 @@ void RobotAct::YOLOV5Callback(const wpb_yolo5::BBox2D &msg)
                 bPeopleFound = false;
                 //updateFlagbPeopleFound();
                 //cout << "bPeopleFound = false" << endl;
-            }
-            if(Objectname.length() > 0)
-            {
-                strDetect = msg.name[i];//考虑替换成容器 塞多个物品？
-                bObjectFound = true;
-                //cout << "bObjectFound = true" << endl;
-                //bPeopleFound = false;
-                //updateFlagbObjectFound();
-            }
-            // if(Objectname.length() == 0)
-            else
-            {
-                bObjectFound = false;
-                //cout << "bObjectFound = false" << endl;
-                //updateFlagbObjectFound();
             }
         }
         YOLO_BBOX = recv_BBOX; // 存入object
@@ -589,6 +619,12 @@ void RobotAct::FaceRecogCallback(const std_msgs::String::ConstPtr& msg)
 {
     strFace = msg->data;
     //cout << "[FaceRecogCB]接收到人脸识别数据" << strFace << endl;
+}
+
+void RobotAct::ObjCallback(const std_msgs::String::ConstPtr& msg)
+{
+    strObj = msg->data;
+    cout << "[ObjCB]接收到物体识别数据" << strObj << endl;
 }
 
 /// @brief 机器人对话
@@ -772,6 +808,7 @@ void RobotAct::State_Reset()
     bArrive       = false;
     bActionDetect = false;
     bFaceDetect   = false;
+    bObjectFound  = false;
     bObjectFound_failed = false;
     bPeopleFound_failed = false;
     cout << "[State_Reset] 重置状态" << endl;
@@ -1174,7 +1211,7 @@ string RobotAct::ActionThread()
     int max_count = 0;
     // unordered_map<std::string,int> action_counts;
     ros::Time start_time = ros::Time::now();
-    ros::Duration timeout(9.0);
+    ros::Duration timeout(8.0);
 
     action_counts.clear();
 
@@ -1222,7 +1259,7 @@ void RobotAct::ActionDetect1()
     Speak("开始动作识别，请在十秒内展示第一个动作");
 
     // 休眠，给用户准备时间
-    std::this_thread::sleep_for(std::chrono::seconds(2)); // 休眠 2 秒，适当调整时间
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // 休眠 2 秒，适当调整时间
 
     // 开始检测第一个动作
     auto actionFuture1 = std::async(std::launch::async, [&]() {
@@ -1230,7 +1267,7 @@ void RobotAct::ActionDetect1()
     });
 
     // 等待最多 10 秒以检测动作
-    if (actionFuture1.wait_for(std::chrono::seconds(12)) == std::future_status::ready) {
+    if (actionFuture1.wait_for(std::chrono::seconds(11)) == std::future_status::ready) {
         Actions_recev = actionFuture1.get();
         Speak("识别到第一个动作: " + Actions_recev);
     } else {
@@ -1244,7 +1281,7 @@ void RobotAct::ActionDetect1()
     Speak("请在十秒内展示下一个动作");
 
     // 休眠，给用户准备时间
-    std::this_thread::sleep_for(std::chrono::seconds(2)); // 休眠 2 秒，适当调整时间
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // 休眠 2 秒，适当调整时间
 
     // 开始检测第二个动作
     auto actionFuture2 = std::async(std::launch::async, [&]() {
@@ -1252,7 +1289,7 @@ void RobotAct::ActionDetect1()
     });
 
     // 等待最多 10 秒以检测动作
-    if (actionFuture2.wait_for(std::chrono::seconds(12)) == std::future_status::ready) {
+    if (actionFuture2.wait_for(std::chrono::seconds(11)) == std::future_status::ready) {
         Actions_recev = actionFuture2.get();
         Speak("识别到第二个动作: " + Actions_recev);
     } else {
@@ -1281,20 +1318,62 @@ std::string RobotAct::Obj_trans(const std::string &obj_yoloInput)
 void RobotAct::ObjDetect()
 {
     cout << "开始识别物体" << endl;
-    Speak("开始识别物体"); // 测试
+    Speak("开始识别垃圾"); // 测试
+    sleep(1);
     ros::spinOnce();
     string strObject;
-    strObject = FindWord(strDetect, arKWObject);
-    std::string Obj_chinese = Obj_trans(strObject);
+    string Obj_chinese;
+    ros::Time start_time = ros::Time::now();
+    ros::Duration timeout(15.0);
+    while(ros::ok())
+    {
+        strObject = FindWord(strObj, arKWObject);
+        Obj_chinese = Obj_trans(strObject);
+        ros::spinOnce();
+        if(Obj_chinese != "未知")
+        {
+            bObjectFound_failed = false;
+            break;
+        }
+        if((ros::Time::now() - start_time).toSec() >= timeout.toSec())
+        {
+            bObjectFound_failed = true;
+            break;
+        }
+    }
+
     if (strObject.length() > 0)
     {
-        Speak("识别到物体" + Obj_chinese);
+        Speak("识别到垃圾" + Obj_chinese);
+        cout <<"物品识别成功"<< endl;
+        //bObjectFound = true;
         nLitterCount++;
+    }
+    else if (strObject.length() == 0)
+    {
+        Speak("没有识别到垃圾");
+        cout <<"物品识别失败"<< endl;
+    }
+}
+
+void RobotAct::ObjEnable(bool inActive)
+{
+    std_msgs::String ObjEnable_msg;
+    if (inActive == true)
+    {
+        ObjEnable_msg.data = "start";
+        ObjEnable_pub.publish(ObjEnable_msg);
+
+    }
+    else if(inActive == false)
+    {
+        ObjEnable_msg.data = "stop";
+        ObjEnable_pub.publish(ObjEnable_msg);
     }
 }
 
 /// @brief 人脸识别
-void RobotAct::FaceDetect()
+bool RobotAct::FaceDetect()
 {
     //考虑添加nLastFace 增加准确性
     ROS_INFO("[Face]Recognized Face: %s ",strFace.c_str());
@@ -1309,7 +1388,7 @@ void RobotAct::FaceDetect()
     std::vector<std::string> recognizedFaces;
     int StableCount     = 0;
     int StableThreshold = 10;
-    sleep(3);
+    sleep(2);
     CurrentFace.clear();
     ros::Time start_time = ros::Time::now();
     ros::Duration timeout(20.0);
@@ -1336,37 +1415,41 @@ void RobotAct::FaceDetect()
 
         if ((ros::Time::now() - start_time).toSec() >= timeout.toSec())
         {
-            Speak("未识别到人脸");
-            SetSpeed(0, 0, 0);
+            cout << "人脸识别超时" << endl;
+            Speak("未识别到家庭成员");
+            //SetSpeed(0, 0, 0);
             //bObjectFound_failed = true;
             //nCurActIndex++;
-            return;
+            return false;
         }
         ros::spinOnce();
         //sleep(0.2);
     }
 
 
-    if (recognizedFaces.back().find("Jack") != std::string::npos)
+    if (recognizedFaces.back().find("Mike") != std::string::npos)
     {
-        Speak("你好，你是杰克");
+        Speak("你好，你是麦克");
         bFaceDetect = true;
         //Face_fail_counts = 0;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
+        return true;
     }
-    if (recognizedFaces.back().find("Linda") != std::string::npos)
+    else if (recognizedFaces.back().find("Linda") != std::string::npos)
     {
         Speak("你好，你是琳达");
         bFaceDetect = true;
         //Face_fail_counts = 0;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
+        return true;
     }
-    if (recognizedFaces.back().find("Lily") != std::string::npos)
+    else if (recognizedFaces.back().find("Lily") != std::string::npos)
     {
         Speak("你好，你是莉莉");
         bFaceDetect = true;
         //Face_fail_counts = 0;
         cout << "[face]bFaceDetect=" << bFaceDetect << endl;
+        return true;
     }
     else if (recognizedFaces.back().length() == 0)
     {
